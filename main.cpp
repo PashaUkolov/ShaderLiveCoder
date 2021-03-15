@@ -29,6 +29,7 @@ int main () {
         std::cout << "error" << std::endl;
 
     TextRenderer textRenderer;
+    textRenderer.loadFont("/Users/pashaukolov/Library/Fonts/PixelFont.ttf", 24);
     
     while(!glfwWindowShouldClose(window))
     {
