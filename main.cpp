@@ -1,8 +1,32 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include "TextRenderer.hpp"
+
+class Shader {
+public:
+    Shader() {
+	
+    }
+    
+private:
+    unsigned int shaderID;
+};
+
+class ShaderParser {
+public:
+    ShaderParser() {
+    }
+
+    Shader loadShaderfromFile(const std::string& filepath) {
+	
+    }
+    
+private:
+};
 
 int main () {    
     if (!glfwInit()) {
@@ -31,8 +55,7 @@ int main () {
     TextRenderer textRenderer;
     textRenderer.loadFont("/Users/pashaukolov/Library/Fonts/PixelFont.ttf", 24);
     
-    while(!glfwWindowShouldClose(window))
-    {
+    while(!glfwWindowShouldClose(window)) {
         glClearColor(0.0f, 0.2f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         

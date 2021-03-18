@@ -17,7 +17,7 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
     FT_Library lib;
     FT_Face face;
 
-    auto error = FT_Init_FreeType(&lib);
+    FT_Error error = FT_Init_FreeType(&lib);
 
     if ( error ) {
 	printf("an error occuret duting fritype initializaton \n");
@@ -25,9 +25,17 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
 
     error = FT_New_Face(lib, path.c_str(), 0, &face);
     if (error == FT_Err_Unknown_File_Format) {
-	printf("... the font file could be opened and read, but it appears that its font format is unsupported");
+	printf("font format is unsupported");
 	    } else if ( error ) {
-	printf("font file could not be opened or read, or that it is broken...");
+	printf("font file couldn't be opened or read, or it is broken...");
 
     }
+}
+
+void TextRenderer::renderText() {
+    unsigned int VBO;
+    unsigned int VAO;
+
+    //Shader shader;
+    //glUseProgram(shader);
 }
