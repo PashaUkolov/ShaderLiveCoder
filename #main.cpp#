@@ -72,11 +72,6 @@ int main () {
 	deltaTime = currentTime - lastFrame;
 	lastFrame = currentTime;
 
-	//if ( glfwGetKey( window, GLFW_KEY_R ) ) {
-	    //textRenderer.reloadShader();
-	    //}
-
-
 	static bool reload_key_pressed = false;
 	bool down = glfwGetKey( window, GLFW_KEY_R );
 	if ( down && !reload_key_pressed ) {
@@ -92,7 +87,6 @@ int main () {
 	} else {
 	    isMousePressed = true;
 	}
-            
 
 	textRenderer.renderText(deltaTime, glm::vec2(xpos, ypos), isMousePressed);
 

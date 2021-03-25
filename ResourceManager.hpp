@@ -1,7 +1,8 @@
 #include <string>
 #include <map>
+#include "Shader.hpp"
 
 class ResourceManager {
     ResourceManager();
-    void loadShader(const char* shaderFile, std::string name);
+    static Shader loadShader(const char* shaderFile, const std::string& name);
 };

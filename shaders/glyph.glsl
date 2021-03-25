@@ -1,13 +1,44 @@
 #shader vertex
 #version 330 core
 
-void main() {
+layout (location = 0) in vec4 vertex;
+uniform mat4 projection;
+uniform mat4 model;
 
+out vec2 coords;
+
+void main() {
+    coords = vertex.xy;
+    gl_Position = projection * model  * vec4(vertex.xy, 0.0, 1.0 );
 }
 
 #shader fragment
 #version 330 core
 
-void main() {
+uniform vec3 shapeColor;
+uniform float time;
+uniform vec2 size;
+//uniform vec2 position;
 
+in vec2 coords;
+out vec4 color;
+
+float circle(vec2 _st, float _radius){
+    vec2 dist = _st-vec2(0.5);
+    return 1.-smoothstep(_radius-(_radius*0.01),
+                         _radius+(_radius*0.01),
+                         dot(dist,dist)*4.0);
+}
+
+void main() {
+    float pct = 0.0;
+    //vec2 st = gl_FragCoord.xy / coords;
+    vec2 c = ((coords - 1)  + vec2(0.5)) * vec2(3.0);
+    c = fract(c);
+    pct = distance(c, vec2(0.5));
+
+    float cir = circle(c, 0.5);
+
+    color = vec4(sin(time) * pct, -pct * sin(time * 2), sin(time * 1.5) * pct, pct) * vec4(cir);
+    //color = vec4(1.0, 1.0, 1.0, 1.0);
 }
