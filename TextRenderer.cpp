@@ -89,18 +89,38 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
 	printf("font format is unsupported");
 	    } else if ( error ) {
 	printf("font file couldn't be opened or read, or it is broken...");
+    }
+
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, face->glyph->bitmap.width, face->glyph->bitmap.height, 0, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
+
+    glBIndTexture(GL_TEXTURE_2D, 0);
+    
+    std::cout << "texture id: " << texture << std::endl;
+    
+    for (int i = 0; i < face->num_glyphs; ++i) {
+	//error = FT_Load_Char(face,
 
     }
+
+    std::cout  << "number of glyphs: "<< face->num_glyphs << std::endl;
 }
 
-void TextRenderer::renderText(float delta, glm::vec2 mouse, bool isRotating) {
+    void TextRenderer::renderText(std::string text, float delta, glm::vec2 mouse, bool isRotating) {
     glBindVertexArray(VAO);
 
     time += delta;
 
+    std::string::const_iterator c;
+    
+    for (c = text.begin(); c != text.end(); c++) {
+	
+    }
+
     glm::vec2 size = glm::vec2(200.0f, 200.0f);
     glm::vec2 position = glm::vec2(mouse.x, mouse.y);
-    //glm::vec2 position = glm::vec2(400.0f, 400.0f);
 
     float rotation = 0.0f;
     if (isRotating)
@@ -110,14 +130,7 @@ void TextRenderer::renderText(float delta, glm::vec2 mouse, bool isRotating) {
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -1.0f, 1.0f );
-    
-    //model = glm::translate(model, glm::vec3(position, 0.0f)); 
-    //model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f)); 
-    //model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f)); 
-    //model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f)); 
-    //model = glm::scale(model, glm::vec3(size, 1.0f));
-
-    
+        
     model = glm::translate(model, glm::vec3(position, 0.0f));
     model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::translate(model, glm::vec3(-0.0f * size.x, -0.0f * size.y, 0.0f));     

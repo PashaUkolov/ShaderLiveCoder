@@ -21,7 +21,7 @@ public:
     ~TextRenderer();
     void loadFont(const std::string& path, unsigned int size);
 
-    void renderText(float delta, glm::vec2 mouse, bool isRotating);
+    void renderText(std::string text, float delta, glm::vec2 mouse, bool isRotating);
     void reloadShader();
 private:
     float width, height;

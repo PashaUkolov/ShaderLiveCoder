@@ -39,6 +39,6 @@ void main() {
 
     float cir = circle(c, 0.5);
 
-    color = vec4(sin(time) * pct, -pct * sin(time * 2), sin(time * 1.5) * pct, pct) * vec4(cir);
+    color = vec4(sin(time) * pct, -pct * sin(time * 5), sin(time * 1.5) * pct, pct) * vec4(cir);
     //color = vec4(1.0, 1.0, 1.0, 1.0);
 }
