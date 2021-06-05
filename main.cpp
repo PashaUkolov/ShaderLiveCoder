@@ -53,20 +53,20 @@ int main () {
     	
     TextRenderer textRenderer(WIDTH, HEIGHT);
     std::string fontPath = "/Users/pashaukolov/Library/Fonts/PixelFont.ttf";
-    textRenderer.loadFont(fontPath, 24);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    textRenderer.loadFont(fontPath, 36);
+    glClearColor(0.0f, 0.05f, 0.08f, 0.0f);
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
     
-    double xpos, ypos;
+    //double xpos ypos;
     bool isMousePressed = false;
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     
     while(!glfwWindowShouldClose(window)) {
-	glfwGetCursorPos(window, &xpos, &ypos);
+	//glfwGetCursorPos(window, &xpos, &ypos);
 	float currentTime = glfwGetTime();
 	deltaTime = currentTime - lastFrame;
 	lastFrame = currentTime;
@@ -87,7 +87,7 @@ int main () {
 	    isMousePressed = true;
 	}
 
-	textRenderer.renderText("hello world", deltaTime, glm::vec2(xpos, ypos), isMousePressed);
+	textRenderer.renderText("hello world", deltaTime, glm::vec2(100.0f, 100.0f), glm::vec3(0.9f, 0.95f, 0.99f));
 
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -19,14 +19,16 @@ class TextRenderer {
 public:
     TextRenderer(int screenWidth, int screenHeight);
     ~TextRenderer();
+    void bindTexture();
     void loadFont(const std::string& path, unsigned int size);
 
-    void renderText(std::string text, float delta, glm::vec2 mouse, bool isRotating);
+    void renderText(std::string text, float delta, glm::vec2 mouse, glm::vec3 color);
     void reloadShader();
 private:
     float width, height;
     Shader shader;
     unsigned int VBO, VAO, EBO;
     float time = 0;
+    unsigned int texture;
 };
     

@@ -15,9 +15,10 @@ void main() {
 #shader fragment
 #version 330 core
 
-uniform vec3 shapeColor;
+uniform vec3 textColor;
 uniform float time;
 uniform vec2 size;
+uniform sampler2D fontTexture;
 //uniform vec2 position;
 
 in vec2 coords;
@@ -39,6 +40,10 @@ void main() {
 
     float cir = circle(c, 0.5);
 
-    color = vec4(sin(time) * pct, -pct * sin(time * 5), sin(time * 1.5) * pct, pct) * vec4(cir);
+    // color = vec4(sin(time) * pct, -pct * sin(time * 5), sin(time * 1.5) * pct, pct) * vec4(cir);
     //color = vec4(1.0, 1.0, 1.0, 1.0);
+    //color = texture(fontTexture, size) * vec4(0.8, 0.2, 0.0, 0.5);
+
+    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(fontTexture, coords).r);
+    color = vec4(textColor, 1.0) * sampled;
 }
