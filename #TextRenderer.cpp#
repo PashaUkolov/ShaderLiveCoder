@@ -192,7 +192,7 @@ void TextRenderer::renderText(std::string text, float delta, glm::vec2 mouse, gl
     time += delta;
 
     float vertices[6][4] = {
-	{ 0.0f, 1.0f,   0.0f, 0.1f },
+	{ 0.0f, 1.0f,   0.0f, 1.0f },
 	{ 1.0f, 0.0f,   1.0f, 0.0f },
 	{ 0.0f, 0.0f,   0.0f, 0.0f },
             

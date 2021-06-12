@@ -52,6 +52,7 @@ int main () {
     glfwWindowInit(window);
     	
     TextRenderer textRenderer(WIDTH, HEIGHT);
+    //std::string fontPath = "/Users/pashaukolov/Library/Fonts/Roboto-regular.ttf";
     std::string fontPath = "/Users/pashaukolov/Library/Fonts/PixelFont.ttf";
     textRenderer.loadFont(fontPath, 36);
     glClearColor(0.0f, 0.05f, 0.08f, 0.0f);
@@ -87,7 +88,7 @@ int main () {
 	    isMousePressed = true;
 	}
 
-	textRenderer.renderText("hello world", deltaTime, glm::vec2(100.0f, 100.0f), glm::vec3(0.9f, 0.95f, 0.99f));
+	textRenderer.renderText("hello world", deltaTime, glm::vec2(0.0f, 0.0f), glm::vec3(0.9f, 0.95f, 0.99f));
 
         glfwSwapBuffers(window);
         glfwPollEvents();
