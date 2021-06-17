@@ -46,7 +46,6 @@ const int HEIGHT = 500;
 const double PI = 3.14159265359;
 
 int main () {
-    std::cout << PI << std::endl;
     init();
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Test Game", NULL, NULL);
     glfwWindowInit(window);
@@ -59,9 +58,6 @@ int main () {
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
-    
-    //double xpos ypos;
-    bool isMousePressed = false;
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -82,18 +78,13 @@ int main () {
 	    textRenderer.reloadShader();
 	}
 
-	if(!glfwGetMouseButton(window, 0)) {
-	    isMousePressed = false;
-	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	} else {
-	    isMousePressed = true;
-	}
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	xpos -= 1.5f;
 
 	glm::vec2 position = glm::vec2(xpos, 0.0f);
 
-	textRenderer.renderText("hello world", deltaTime, position, glm::vec3(0.2f, 0.95f, 0.99f));
+	textRenderer.drawText("hello world", deltaTime, position, glm::vec3(0.2f, 0.95f, 0.99f));
 
         glfwSwapBuffers(window);
         glfwPollEvents();

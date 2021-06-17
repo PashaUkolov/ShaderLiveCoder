@@ -98,10 +98,6 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
     FT_Set_Pixel_Sizes(face, 0, fontSize);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);;
     
-    int bufferSize = 0;
-    int mapWidth = 0;
-    int mapHeight = 0;
-
     int textureWidth = 0;
     int textureHeight = 0;
 
@@ -115,15 +111,11 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
 	if (height > textureHeight)
 	    textureHeight = height;
 
-	//aproximate buffer size for texture
-	int glyphSize = (face->glyph->advance.x / 64) * face->glyph->bitmap.rows;
-	bufferSize += glyphSize;
-
 	textureWidth += face->glyph->bitmap.width;
     }
     
     unsigned char* map = (unsigned char*)calloc(textureWidth * textureHeight, 1);
-
+ 
     int offset = 0;
 
     for (GLubyte c = 0; c < 128; c++) {
@@ -132,9 +124,6 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
 
 	int rows = bmp->rows;
 	int width = bmp->width;
-	int pad = textureHeight - rows;
-	
-	int mapPad = textureWidth - width;
 	
  	for (int row = 0; row < rows; ++row) {
 	    for (int i = 0; i < width; ++i) {
@@ -168,7 +157,7 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
     FT_Done_FreeType(lib);
 }
 
-void TextRenderer::renderText(std::string text, float delta, glm::vec2 mouse, glm::vec3 color) {
+void TextRenderer::drawText(std::string text, float delta, glm::vec2 mouse, glm::vec3 color) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glUseProgram(shader.ID);

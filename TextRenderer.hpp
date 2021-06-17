@@ -22,7 +22,7 @@ public:
     void bindTexture();
     void loadFont(const std::string& path, unsigned int size);
 
-    void renderText(std::string text, float delta, glm::vec2 mouse, glm::vec3 color);
+    void drawText(std::string text, float delta, glm::vec2 mouse, glm::vec3 color);
     void reloadShader();
 private:
     float width, height;
