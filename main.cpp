@@ -65,6 +65,7 @@ int main () {
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    float xpos = 0;
     
     while(!glfwWindowShouldClose(window)) {
 	//glfwGetCursorPos(window, &xpos, &ypos);
@@ -88,7 +89,11 @@ int main () {
 	    isMousePressed = true;
 	}
 
-	textRenderer.renderText("hello world", deltaTime, glm::vec2(0.0f, 0.0f), glm::vec3(0.9f, 0.95f, 0.99f));
+	xpos -= 1.5f;
+
+	glm::vec2 position = glm::vec2(xpos, 0.0f);
+
+	textRenderer.renderText("hello world", deltaTime, position, glm::vec3(0.2f, 0.95f, 0.99f));
 
         glfwSwapBuffers(window);
         glfwPollEvents();

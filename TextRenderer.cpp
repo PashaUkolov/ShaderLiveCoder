@@ -62,12 +62,11 @@ TextRenderer::TextRenderer(int screenWidth, int screenHeight) :
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 		 sizeof(indeces),
 		 indeces,
-		 GL_STATIC_DRAW );
-    
+		 GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT,
 			  GL_FALSE,
-			  4 * sizeof(float), (GLvoid*)0);
+			  3 * sizeof(float), (GLvoid*)0);
 
     glEnableVertexAttribArray(0);
 
@@ -97,68 +96,53 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
 	printf("font file couldn't be opened or read, or it is broken...");
 
     FT_Set_Pixel_Sizes(face, 0, fontSize);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    // load character glyph
-    // if (FT_Load_Char(face, 65, FT_LOAD_RENDER)) 
-    // 	printf("ERROR::FREETYTPE: Failed to load Glyph \n");
-
-    //unsigned char* textureMap = face->glyph->bitmap.buffer;
-
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);;
+    
     int bufferSize = 0;
     int mapWidth = 0;
     int mapHeight = 0;
 
+    int textureWidth = 0;
+    int textureHeight = 0;
+
     for (GLubyte c = 0; c < 128; c++) {
 	if (FT_Load_Char(face, c, FT_LOAD_RENDER)) 
 	    printf("ERROR::FREETYTPE: Failed to load Glyph \n");
 
-	int advance = face->glyph->advance.x / 64;
-	//get widest char size
-	if (advance > mapWidth) 
-	    mapWidth = advance;
+	int height = face->glyph->bitmap.rows;
+
+	//get highest char
+	if (height > textureHeight)
+	    textureHeight = height;
 
 	//aproximate buffer size for texture
 	int glyphSize = (face->glyph->advance.x / 64) * face->glyph->bitmap.rows;
 	bufferSize += glyphSize;
+
+	textureWidth += face->glyph->bitmap.width;
     }
     
-    unsigned char* map = (unsigned char*)malloc(bufferSize);
-    
+    unsigned char* map = (unsigned char*)calloc(textureWidth * textureHeight, 1);
+
     int offset = 0;
 
     for (GLubyte c = 0; c < 128; c++) {
-	if (FT_Load_Char(face, c, FT_LOAD_RENDER)) 
-	    printf("ERROR::FREETYTPE: Failed to load Glyph \n");
-	
-	int glyphSize = face->glyph->bitmap.width * face->glyph->bitmap.rows;
-	int advance = face->glyph->advance.x / 64;
-	
-	mapHeight += face->glyph->bitmap.rows;
-	printf("%d \n",mapHeight);
+	FT_Load_Char(face, c, FT_LOAD_RENDER);
+	FT_Bitmap * bmp = &face->glyph->bitmap;
 
-	int rows = face->glyph->bitmap.rows;
-	int width = face->glyph->bitmap.width;
-
-	//need to add some padding at the end of char to align by the widest char
-	int texSize = mapWidth * rows;
-	    
-	for (int row = 0; row < rows; ++row) {
-	    for(int i = 0; i < mapWidth; ++i) {
-		if (i < width) {
-		    map[mapWidth * row + i + offset] = face->glyph->bitmap.buffer[width * row + i];
-		} else {
-		    map[mapWidth * row + i + offset] = 0x00;
-		}
+	int rows = bmp->rows;
+	int width = bmp->width;
+	int pad = textureHeight - rows;
+	
+	int mapPad = textureWidth - width;
+	
+ 	for (int row = 0; row < rows; ++row) {
+	    for (int i = 0; i < width; ++i) {
+		map[row * textureWidth + offset + i] = bmp->buffer[row * bmp->pitch + i];	      
 	    }
 	}
 
-	printf("map width: %d \n", mapWidth);
-	
-	// for (int i = 0; i < glyphSize; i++) {
-	//     map[offset + i] = face->glyph->bitmap.buffer[i];
-	// }
-	offset += texSize;
+	offset += width;
     }
 
     glGenTextures(1, &texture);
@@ -166,8 +150,8 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
     glTexImage2D(GL_TEXTURE_2D,
 		 0,
 		 GL_RED,
-		 mapWidth,
-		 mapHeight,
+		 textureWidth,
+		 textureHeight,
 		 0,
 		 GL_RED,
 		 GL_UNSIGNED_BYTE,
@@ -192,7 +176,7 @@ void TextRenderer::renderText(std::string text, float delta, glm::vec2 mouse, gl
     time += delta;
 
     float vertices[6][4] = {
-	{ 0.0f, 1.0f,   0.0f, 0.1f },
+	{ 0.0f, 1.0f,   0.0f, 1.0f },
 	{ 1.0f, 0.0f,   1.0f, 0.0f },
 	{ 0.0f, 0.0f,   0.0f, 0.0f },
             
@@ -206,7 +190,7 @@ void TextRenderer::renderText(std::string text, float delta, glm::vec2 mouse, gl
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 
-    glm::vec2 size = glm::vec2(100.0f, 5000);
+    glm::vec2 size = glm::vec2(5000.0f, 100.0f);
     glm::vec2 position = glm::vec2(mouse.x, mouse.y);
 
     glm::mat4 model = glm::mat4(1.0f);
