@@ -41,6 +41,19 @@ int glfwWindowInit(GLFWwindow* window) {
     return 0;
 }
 
+static std::string text;
+
+static std::string appendToString(char ch, std::string& text) {
+    //std::string text;
+
+    text+= ch;
+    return text;
+}
+
+void characterCallback (GLFWwindow * window, unsigned int keyCode);
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 const int WIDTH = 800;
 const int HEIGHT = 500;
 const double PI = 3.14159265359;
@@ -49,11 +62,14 @@ int main () {
     init();
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Test Game", NULL, NULL);
     glfwWindowInit(window);
+    glfwSetCharCallback(window, characterCallback);
+    glfwSetKeyCallback(window, keyCallback);
     	
-    TextRenderer textRenderer(WIDTH, HEIGHT);
+    //TextRenderer textRenderer(WIDTH, HEIGHT);
+    TextRenderer *textRenderer = new TextRenderer(WIDTH, HEIGHT);
     //std::string fontPath = "/Users/pashaukolov/Library/Fonts/Roboto-regular.ttf";
     std::string fontPath = "/Users/pashaukolov/Library/Fonts/PixelFont.ttf";
-    textRenderer.loadFont(fontPath, 36);
+    textRenderer->loadFont(fontPath, 36);
     glClearColor(0.0f, 0.05f, 0.08f, 0.0f);
 
     float deltaTime = 0.0f;
@@ -62,6 +78,7 @@ int main () {
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     float xpos = 0;
+    bool keyJustPressed = false;
     
     while(!glfwWindowShouldClose(window)) {
 	//glfwGetCursorPos(window, &xpos, &ypos);
@@ -69,22 +86,34 @@ int main () {
 	deltaTime = currentTime - lastFrame;
 	lastFrame = currentTime;
 
+	// int state = glfwGetKey(window, GLFW_KEY_BACKSPACE);
+	// if (state == GLFW_PRESS) {
+	//     keyJustPressed = true;
+	//     std::cout << "backspace" << std::endl;
+	    
+	// }
+
+	// if (keyJustPressed) {
+	//     text = text.substr(0, text.size()-1);
+	//     keyJustPressed = false;
+	// }
+
 	static bool reload_key_pressed = false;
 	bool down = glfwGetKey( window, GLFW_KEY_R );
 	if ( down && !reload_key_pressed ) {
 	    reload_key_pressed = true;
 	} else if ( !down && reload_key_pressed ) {
 	    reload_key_pressed = false;
-	    textRenderer.reloadShader();
+	    textRenderer->reloadShader();
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	xpos -= 1.5f;
+	glm::vec2 position = glm::vec2(0.0f, 0.0f);
 
-	glm::vec2 position = glm::vec2(xpos, 0.0f);
+	textRenderer->drawText(text, deltaTime, position, glm::vec3(0.2f, 0.95f, 0.99f));
 
-	textRenderer.drawText("hello world", deltaTime, position, glm::vec3(0.2f, 0.95f, 0.99f));
+	// textRenderer->drawText("hello", deltaTime, position, glm::vec3(0.2f, 0.95f, 0.99f));
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -95,4 +124,23 @@ int main () {
     std::cout << "App closed succesfully" << std::endl;
 
     return 0;
+}
+
+void characterCallback (GLFWwindow * window, unsigned int keyCode) {
+    text += keyCode;
+    std::cout << keyCode << std::endl;
+    
+    std::cout << text << std::endl;
+}
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    // switch (key) {
+    //     case 'GLFW_ESCAPE_KEY': bRunning = false; break;
+    //     case 'W': bMoveForward = true; break;
+    //     default: break;
+    // }
+
+    if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS || action == GLFW_REPEAT) {
+	text = text.substr(0, text.size()-1);
+    }
 }

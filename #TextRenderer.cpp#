@@ -89,9 +89,6 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
     FT_Set_Pixel_Sizes(face, 0, fontSize);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);;
     
-    //int textureWidth = 0;
-    //textureHeight = 0;
-
     for (GLubyte c = 0; c < 128; c++) {
 	if (FT_Load_Char(face, c, FT_LOAD_RENDER)) 
 	    printf("ERROR::FREETYTPE: Failed to load Glyph \n");
