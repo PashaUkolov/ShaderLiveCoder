@@ -31,11 +31,14 @@ public:
     void loadFont(const std::string& path, unsigned int size);
 
     void drawText(std::string text, float delta, glm::vec2 position, glm::vec3 color);
+
+    void drawCarret(glm::vec2 position, glm::vec3 color, float time);
     void reloadShader();
     std::unordered_map<char, Character> characters;
 private:
     float width, height;
-    Shader shader;
+    Shader glyphShader;
+    Shader carretShader;
     unsigned int VBO, VAO, EBO;
     float time = 0;
     unsigned int texture;

@@ -62,8 +62,11 @@ TextRenderer::TextRenderer(int screenWidth, int screenHeight) :
     glEnableVertexAttribArray(0);
 
     glBindVertexArray(0); 
-    shader = shader.parseShader("/Users/pashaukolov/Documents/Code/TextRenderer/shaders/glyph.glsl");
-    glUseProgram(shader.ID);
+    glyphShader = glyphShader.parseShader("/Users/pashaukolov/Documents/Code/TextRenderer/shaders/glyph.glsl");
+
+    carretShader = carretShader.parseShader("/Users/pashaukolov/Documents/Code/TextRenderer/shaders/carret.glsl");
+    glUseProgram(glyphShader.ID);
+    glUseProgram(carretShader.ID);
 }
 
 TextRenderer::~TextRenderer() {
@@ -89,9 +92,6 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
     FT_Set_Pixel_Sizes(face, 0, fontSize);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);;
     
-    //int textureWidth = 0;
-    //textureHeight = 0;
-
     for (GLubyte c = 0; c < 128; c++) {
 	if (FT_Load_Char(face, c, FT_LOAD_RENDER)) 
 	    printf("ERROR::FREETYTPE: Failed to load Glyph \n");
@@ -105,8 +105,6 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
 	    textureWidth
 	};
 
-	printf("char: %c, texture width: %d \n", c, textureWidth);
-	    
 	characters.insert(std::pair<char, Character>(c, character));
 
 	//get highest char
@@ -163,103 +161,130 @@ void TextRenderer::drawText(std::string text, float delta, glm::vec2 position, g
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glUseProgram(shader.ID);
+    glUseProgram(glyphShader.ID);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
     
     time += delta;
 
-    float s = 1.0f / 128.0f;
-
-    float pos = std::sin(time);
-    int index = 0;
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    float pad = 10.5f;
-    
     for (auto c = text.begin(); c != text.end(); c++) {
 	Character ch = characters[*c];
-	//float xPos = index * 50.0f;
-
-	float xpos = position.x + ch.bearing.x;
-        float ypos = position.y + (this->characters['H'].bearing.y - ch.bearing.y);
 	float w = ch.size.x;
         float h = ch.size.y;
 
-	//float xPos = ch.bearing.x;
-	float num = (sin(time) * 0.5f + 0.5f);
+	if(position.x + w >= width) {
+	    position.x = 10.0f;
+	    position.y += textureHeight;
+	}
+		
+	float xpos = position.x + ch.bearing.x;
+        float ypos = position.y + (this->characters['H'].bearing.y - ch.bearing.y);
+	
 	float texturePos = float(ch.texCoord) / float(textureWidth);
 	float texw = (float(ch.texCoord + w) / float(textureWidth)) - texturePos;
 
 	float texh = float(ch.size.y) / float(textureHeight);
-	   
-	//float texw = 1.0f / w; 
-	 // printf("%d texture pos \n", ch.texCoord);
-	 // printf("%f char width \n", w);
-	 // printf("%d textureWidth \n", textureWidth);
-	 // printf("%f texturePOS \n", texturePos);
-
-	//this is for testing
-	// float vertices[4][4] = {
-	//     // x     y
-	//     { xpos,     h,    texturePos + w, 1.0f }, 
-	//     { xpos,     0.0f, texturePos + w, 0.0f },
-	//     { w + xpos, 0.0f, texturePos, 0.0f },
-	//     { w + xpos, h,    texturePos, 1.0f },
-	// };
-
-	float offset = num;
 
 	// float vertices[4][4] = {
 	//     // x     y
-	//     { xpos,     h,    texturePos, 1.0f }, 
-	//     { xpos,     0.0f, texturePos, 0.0f },
-	//     { w + xpos, 0.0f, texturePos + texw, 0.0f },
-	//     { w + xpos, h,    texturePos + texw, 1.0f },
+	//     { xpos,     ypos + h,    texturePos,        texh }, 
+	//     { xpos,     ypos,        texturePos,        0.0f },
+	//     { w + xpos, ypos,        texturePos + texw, 0.0f },
+	//     { w + xpos, ypos + h,    texturePos + texw, texh },
 	// };
 
-	float vertices[4][4] = {
+	float vertices[] = {
 	    // x     y
-	    { xpos,     ypos + h,    texturePos,        texh }, 
-	    { xpos,     ypos,        texturePos,        0.0f },
-	    { w + xpos, ypos,        texturePos + texw, 0.0f },
-	    { w + xpos, ypos + h,    texturePos + texw, texh },
+	     xpos,     ypos + h,    texturePos,        texh , 
+	     xpos,     ypos,        texturePos,        0.0f ,
+	     w + xpos, ypos,        texturePos + texw, 0.0f ,
+	     w + xpos, ypos + h,    texturePos + texw, texh ,
 	};
-
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+	
+	
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	position.x += ch.advance >> 6;
-	index++;
+
+	if(*c == '\n') {
+	    position.x = 10.0f;
+	    position.y += textureHeight;
+	}
     }
 
-    //glBindVertexArray(VAO);
-    //glBindTexture(GL_TEXTURE_2D, texture);
-    // glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-    // glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
-    glm::vec2 size = glm::vec2(5000.0f, 100.0f);
-    //glm::vec2 position = glm::vec2(mouse.x, mouse.y);
-
-    
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
         
     //all uniforms
-    glUniform3f(glGetUniformLocation(shader.ID, "textColor"), color.x, color.y, color.z);
+    glUniform3f(glGetUniformLocation(glyphShader.ID, "textColor"), color.x, color.y, color.z);
     
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, false, glm::value_ptr(projection));
+    glUniformMatrix4fv(glGetUniformLocation(glyphShader.ID, "projection"), 1, false, glm::value_ptr(projection));
     
-    glUniform1i(glGetUniformLocation(this->shader.ID, "fontTexture"), 0);
+    glUniform1i(glGetUniformLocation(this->glyphShader.ID, "fontTexture"), 0);
     //glUniform1f(glGetUniformLocation(shader.ID, "time"), time);
+
+    drawCarret(position, color, time);
     
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);
 }
 
+void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glUseProgram(carretShader.ID);
+    
+    float animation = std::sin(time);
+
+    char c = 'h';
+    Character ch = characters[c];
+
+    float xpos = position.x + ch.bearing.x;
+    float ypos = position.y + (this->characters['H'].bearing.y - ch.bearing.y);
+    float w = ch.size.x;
+    float h = ch.size.y;
+
+    float num = (sin(time) * 0.5f + 0.5f);
+    float texturePos = float(ch.texCoord) / float(textureWidth);
+    float texw = (float(ch.texCoord + w) / float(textureWidth)) - texturePos;
+
+    float texh = float(ch.size.y) / float(textureHeight);
+
+    float offset = num;
+
+    float vertices[4][4] = {
+	// x     y
+	{ xpos,     ypos + h,    texturePos,        texh }, 
+	{ xpos,     ypos,        texturePos,        0.0f },
+	{ w + xpos, ypos,        texturePos + texw, 0.0f },
+	{ w + xpos, ypos + h,    texturePos + texw, texh },
+    };
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    position.x += ch.advance >> 6;
+
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
+        
+    //all uniforms
+    glUniform3f(glGetUniformLocation(carretShader.ID, "textColor"), color.x, color.y, color.z);
+    glUniformMatrix4fv(glGetUniformLocation(carretShader.ID, "projection"), 1, false, glm::value_ptr(projection));
+    glUniform1f(glGetUniformLocation(carretShader.ID, "time"), time);
+    
+    // glBindVertexArray(0);
+    // glBindTexture(GL_TEXTURE_2D, 0);
+    // glDisable(GL_BLEND);
+}
+
 void TextRenderer::reloadShader() {
-    shader = shader.reloadShader("/Users/pashaukolov/Documents/Code/TextRenderer/shaders/glyph.glsl");
-    glUseProgram(shader.ID);
+    glyphShader = glyphShader.reloadShader("/Users/pashaukolov/Documents/Code/TextRenderer/shaders/glyph.glsl");
+    glUseProgram(glyphShader.ID);
     std::cout << "shader reloaded" << std::endl;
 }

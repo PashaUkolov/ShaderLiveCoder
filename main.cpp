@@ -44,8 +44,6 @@ int glfwWindowInit(GLFWwindow* window) {
 static std::string text;
 
 static std::string appendToString(char ch, std::string& text) {
-    //std::string text;
-
     text+= ch;
     return text;
 }
@@ -69,7 +67,7 @@ int main () {
     TextRenderer *textRenderer = new TextRenderer(WIDTH, HEIGHT);
     //std::string fontPath = "/Users/pashaukolov/Library/Fonts/Roboto-regular.ttf";
     std::string fontPath = "/Users/pashaukolov/Library/Fonts/PixelFont.ttf";
-    textRenderer->loadFont(fontPath, 36);
+    textRenderer->loadFont(fontPath, 24);
     glClearColor(0.0f, 0.05f, 0.08f, 0.0f);
 
     float deltaTime = 0.0f;
@@ -93,11 +91,6 @@ int main () {
 	    
 	// }
 
-	// if (keyJustPressed) {
-	//     text = text.substr(0, text.size()-1);
-	//     keyJustPressed = false;
-	// }
-
 	static bool reload_key_pressed = false;
 	bool down = glfwGetKey( window, GLFW_KEY_R );
 	if ( down && !reload_key_pressed ) {
@@ -109,9 +102,9 @@ int main () {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glm::vec2 position = glm::vec2(0.0f, 0.0f);
+	glm::vec2 position = glm::vec2(10.0f, 10.0f);
 
-	textRenderer->drawText(text, deltaTime, position, glm::vec3(0.2f, 0.95f, 0.99f));
+	textRenderer->drawText(text, deltaTime, position, glm::vec3(0.3f, 0.95f, 0.6f));
 
 	// textRenderer->drawText("hello", deltaTime, position, glm::vec3(0.2f, 0.95f, 0.99f));
 
@@ -120,6 +113,7 @@ int main () {
     }
     
     glfwTerminate();
+    delete textRenderer;
     
     std::cout << "App closed succesfully" << std::endl;
 
@@ -128,19 +122,14 @@ int main () {
 
 void characterCallback (GLFWwindow * window, unsigned int keyCode) {
     text += keyCode;
-    std::cout << keyCode << std::endl;
-    
-    std::cout << text << std::endl;
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    // switch (key) {
-    //     case 'GLFW_ESCAPE_KEY': bRunning = false; break;
-    //     case 'W': bMoveForward = true; break;
-    //     default: break;
-    // }
-
     if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS || action == GLFW_REPEAT) {
 	text = text.substr(0, text.size()-1);
+    }
+
+    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
+	text += '\n';
     }
 }
