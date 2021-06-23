@@ -19,21 +19,37 @@ TextRenderer::TextRenderer(int screenWidth, int screenHeight) :
 
     float vertices [] = {
 	//x    y     z
-	0.5f, 0.5f, 0.0f, //top right
-	0.5f, -0.5f, 0.0f, //bottom right
-	-0.5f, -0.5f, 0.0f, //bottom left
-	-0.5f, 0.5f, 0.0f //top left
+	0.5f, 0.5f, 0.0f, 0.0f, //top right
+	0.5f, -0.5f, 0.0f, 0.0f, //bottom right
+	-0.5f, -0.5f, 0.0f, 0.0f, //bottom left
+	-0.5f, 0.5f, 0.0f, 0.0f //top left
     };
 
-    unsigned int indeces [] = {
-	0, 1, 3, //first triangle
-	1, 2, 3	
-    };
-
+    const size_t maxQuadCount = 5000;
+    const size_t maxVertexCount = maxQuadCount * 4;
+    const size_t maxIndexCount = maxQuadCount * 6;
+    
     // unsigned int indeces [] = {
-    // 	0, 1, 2, //first triangle
-    // 	0, 2, 3	
+    // 	0, 1, 3, //first triangle
+    // 	1, 2, 3,
+    // 	4, 5, 7, //first triangle
+    // 	5, 6, 7	
     // };
+
+    uint32_t indeces [maxIndexCount];
+
+    uint32_t offset = 0;
+    for (size_t i = 0; i < maxIndexCount; i += 6) {
+	indeces[i + 0] = 0 + offset;
+	indeces[i + 1] = 1 + offset;
+	indeces[i + 2] = 3 + offset;
+
+	indeces[i + 3] = 1 + offset;
+	indeces[i + 4] = 2 + offset;
+	indeces[i + 5] = 3 + offset;
+
+	offset += 4;
+    }
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -44,10 +60,10 @@ TextRenderer::TextRenderer(int screenWidth, int screenHeight) :
     // VBO Buffer 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER,
-		 sizeof(float) * 6 * 4,
-		 vertices,
-		 GL_DYNAMIC_DRAW);
-    
+		 (sizeof(float) * 4) * maxVertexCount,
+		 nullptr,
+		 GL_STATIC_DRAW);
+
     // EBO Buffer
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -60,7 +76,6 @@ TextRenderer::TextRenderer(int screenWidth, int screenHeight) :
 			  4 * sizeof(float), (GLvoid*)0);
 
     glEnableVertexAttribArray(0);
-
     glBindVertexArray(0); 
     glyphShader = glyphShader.parseShader("/Users/pashaukolov/Documents/Code/TextRenderer/shaders/glyph.glsl");
 
@@ -167,9 +182,16 @@ void TextRenderer::drawText(std::string text, float delta, glm::vec2 position, g
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
     
     time += delta;
+    int min = 0;
+    int max = 4;
 
+    size_t index = 0;
+    uint32_t indexCount = 0;
+    
     for (auto c = text.begin(); c != text.end(); c++) {
 	Character ch = characters[*c];
+	// int rand =  min + (std::rand() % static_cast<int>(max - min + 1));
+	// Character ch = characters[int(time + rand) % 128];
 	float w = ch.size.x;
         float h = ch.size.y;
 
@@ -183,17 +205,8 @@ void TextRenderer::drawText(std::string text, float delta, glm::vec2 position, g
 	
 	float texturePos = float(ch.texCoord) / float(textureWidth);
 	float texw = (float(ch.texCoord + w) / float(textureWidth)) - texturePos;
-
 	float texh = float(ch.size.y) / float(textureHeight);
-
-	// float vertices[4][4] = {
-	//     // x     y
-	//     { xpos,     ypos + h,    texturePos,        texh }, 
-	//     { xpos,     ypos,        texturePos,        0.0f },
-	//     { w + xpos, ypos,        texturePos + texw, 0.0f },
-	//     { w + xpos, ypos + h,    texturePos + texw, texh },
-	// };
-
+	
 	float vertices[] = {
 	    // x     y
 	     xpos,     ypos + h,    texturePos,        texh , 
@@ -201,24 +214,31 @@ void TextRenderer::drawText(std::string text, float delta, glm::vec2 position, g
 	     w + xpos, ypos,        texturePos + texw, 0.0f ,
 	     w + xpos, ypos + h,    texturePos + texw, texh ,
 	};
+
+	glBufferSubData(GL_ARRAY_BUFFER,
+			index * sizeof(vertices),
+			sizeof(vertices),
+			vertices);
 	
-	
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	position.x += ch.advance >> 6;
 
 	if(*c == '\n') {
 	    position.x = 10.0f;
 	    position.y += textureHeight;
 	}
+	
+	indexCount += 6;
+	index++;
     }
+    // glBindVertexArray(VAO);
+    // glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
 
-    glm::mat4 model = glm::mat4(1.0f);
+    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
+
     glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
         
     //all uniforms
-    glUniform3f(glGetUniformLocation(glyphShader.ID, "textColor"), color.x, color.y, color.z);
-    
+    glUniform3f(glGetUniformLocation(glyphShader.ID, "textColor"), color.x, color.y, color.z);    
     glUniformMatrix4fv(glGetUniformLocation(glyphShader.ID, "projection"), 1, false, glm::value_ptr(projection));
     
     glUniform1i(glGetUniformLocation(this->glyphShader.ID, "fontTexture"), 0);
@@ -253,8 +273,6 @@ void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
 
     float texh = float(ch.size.y) / float(textureHeight);
 
-    float offset = num;
-
     float vertices[4][4] = {
 	// x     y
 	{ xpos,     ypos + h,    texturePos,        texh }, 
@@ -263,14 +281,13 @@ void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
 	{ w + xpos, ypos + h,    texturePos + texw, texh },
     };
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+    //glBindVertexArray(VAO);
+    //glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     position.x += ch.advance >> 6;
 
-    glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f);
         
     //all uniforms
