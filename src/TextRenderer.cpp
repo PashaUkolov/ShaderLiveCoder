@@ -205,10 +205,7 @@ void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width,
 }
 
 void TextRenderer::drawText(std::string text, glm::vec2 position, glm::vec3 color) {
-	size_t index = 0;
-	uint32_t indexCount = 0;
 	glm::vec2 charPos = position;
-
 	for (auto c = text.begin(); c != text.end(); c++) {
 		Character ch = characters[*c];
 		float w = ch.size.x;
@@ -221,7 +218,7 @@ void TextRenderer::drawText(std::string text, glm::vec2 position, glm::vec3 colo
 		float texw = (float(ch.texCoord + w) / float(m_fontAtlas.width)) - texturePos;
 		float texh = float(ch.size.y) / float(m_fontAtlas.height);
 
-		TextureAtlasPart part = { texturePos, 0.0,texw, texh };
+		TextureAtlasPart part = { texturePos, 0.0, texw, texh };
 
 		if (*c != '\n') {
 			drawQuadTexture(m_fontAtlas, { xpos, ypos }, w, h, part, color);
@@ -238,11 +235,36 @@ void TextRenderer::drawText(std::string text, glm::vec2 position, glm::vec3 colo
 			charPos.x = position.x;
 			charPos.y += m_fontAtlas.height;
 		}
+	}
 
-		indexCount += 6;
+	int index = 0;
+	glm::vec2 carretPosition = position;
+	for (auto c = text.begin(); c != text.end(); c++) {
+		if (index >= m_carretIndex) {
+			break;
+		}
+		Character ch = characters[*c];
+		float w = ch.size.x;
+		float h = ch.size.y;
+
+		carretPosition.x += ch.advance >> 6;
+
+		if (carretPosition.x + w >= m_width) {
+			carretPosition.x = position.x;
+			carretPosition.y += m_fontAtlas.height;
+		}
+
+		if (*c == '\n') {
+			carretPosition.x = position.x;
+			carretPosition.y += m_fontAtlas.height;
+		}
 		index++;
 	}
-	drawCarret(charPos, color, 0.0f);
+	drawCarret(carretPosition, color, 0.0f);
+}
+
+void Renderer::TextRenderer::setCarretIndex(int index) {
+	m_carretIndex = index;
 }
 
 void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
@@ -260,6 +282,7 @@ void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
 	float texturePos = float(ch.texCoord) / float(m_fontAtlas.width);
 	float texw = (float(ch.texCoord + w) / float(m_fontAtlas.width)) - texturePos;
 	float texh = float(ch.size.y) / float(m_fontAtlas.height);
+	glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
 	drawQuad({ xpos , ypos }, w, h, color);
 }
 

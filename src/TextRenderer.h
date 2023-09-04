@@ -50,6 +50,7 @@ namespace Renderer {
 		void drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color);
 		void drawText(std::string text, glm::vec2 position, glm::vec3 color);
 
+		void setCarretIndex(int index);
 		void drawCarret(glm::vec2 position, glm::vec3 color, float time);
 		void reloadShader();
 		std::unordered_map<char, Character> characters;
@@ -60,6 +61,8 @@ namespace Renderer {
 		Shader m_quadShader;
 		unsigned int m_VBO, m_VAO, m_EBO;
 		Texture m_fontAtlas;
+		glm::vec2 carretPosition = {};
+		int m_carretIndex = 0;
 	};
 }
     
