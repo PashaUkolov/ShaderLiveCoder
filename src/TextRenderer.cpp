@@ -174,14 +174,12 @@ void TextRenderer::drawQuad(glm::vec2 position, float width, float height, glm::
 }
 
 void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color) {
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glUseProgram(m_glyphShader.ID);
 	glBindTexture(GL_TEXTURE_2D, m_fontAtlas.id);
 	glBindVertexArray(m_VAO);
 
-	float w = 1.0f;
-	float h = 1.0f;
 	float xpos = position.x;
 	float ypos = position.y;
 
