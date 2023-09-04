@@ -235,7 +235,7 @@ void TextRenderer::drawText(std::string text, glm::vec2 position, glm::vec3 colo
 		part.width  = texw;
 		part.height = texh;
 
-		drawQuadTexture(m_fontAtlas, { position.x, position.y }, w, h, part, color);
+		drawQuadTexture(m_fontAtlas, { xpos, ypos }, w, h, part, color);
 
 		position.x += ch.advance >> 6;
 

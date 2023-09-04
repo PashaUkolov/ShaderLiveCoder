@@ -41,9 +41,9 @@ int main() {
 
 		glm::vec2 position = glm::vec2(20.0f, 20.0f);
 		auto color = glm::vec3(0.5f, 0.5f, 0.9f);
-		//textRenderer->drawText(m_text, position, color);
-		TextureAtlasPart part = { 0.0f, 0.0f, 1.0f, 1.0f};
-		textRenderer->drawQuadTexture(texture, {0.0f, 0.0f}, texture.width, texture.height, part, color);
+		textRenderer->drawText(m_text, position, color);
+		//TextureAtlasPart part = { 0.0f, 0.0f, 1.0f, 1.0f};
+		//textRenderer->drawQuadTexture(texture, {0.0f, 0.0f}, texture.width, texture.height, part, color);
 
 		textRenderer->endFrame();
 	}
