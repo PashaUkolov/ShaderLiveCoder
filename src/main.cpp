@@ -10,43 +10,43 @@
 
 #include "App.h"
 
-const int WIDTH = 800;
-const int HEIGHT = 500;
-const double PI = 3.14159265359;
+static const int WIDTH = 1920;
+static const int HEIGHT = 500;
+
+using namespace Renderer;
 
 int main() {
 	App app;
-	app.init();
-
-	TextRenderer* textRenderer = new TextRenderer(WIDTH, HEIGHT);
-	textRenderer->loadFont("../assets/fonts/pico-8.ttf", 24);
-	glClearColor(0.0f, 0.05f, 0.08f, 0.0f);
-
-	float deltaTime = 0.0f;
-	float lastFrame = 0.0f;
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	app.init(WIDTH, HEIGHT);
 
 	GLFWwindow* window = app.getWindow();
+
+	TextRenderer* textRenderer = new TextRenderer(window, WIDTH, HEIGHT);
+	textRenderer->init();
+	textRenderer->loadFont("../assets/fonts/BigBlue_TerminalPlus.ttf", 24);
+
+	auto texture = textRenderer->getFontTexture();
+
+	float time = 0.0f;
+	float deltaTime = 0.0f;
+	float lastFrame = 0.0f;
 	while (!glfwWindowShouldClose(window)) {
+		textRenderer->beginFrame();
+
 		float currentTime = glfwGetTime();
 		deltaTime = currentTime - lastFrame;
 		lastFrame = currentTime;
+		time += deltaTime;
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glm::vec2 position = glm::vec2(20.0f, 20.0f);
+		auto color = glm::vec3(0.5f, 0.5f, 0.9f);
+		textRenderer->drawText(m_text, position, color);
 
-		glm::vec2 position = glm::vec2(10.0f, 10.0f);
-		textRenderer->drawText(m_text, deltaTime, position, glm::vec3(0.3f, 0.95f, 0.6f));
-
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		textRenderer->endFrame();
 	}
 
 	glfwTerminate();
 	delete textRenderer;
-
 	std::cout << "App closed succesfully" << std::endl;
-
 	return 0;
 }

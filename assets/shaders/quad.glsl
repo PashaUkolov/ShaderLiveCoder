@@ -8,7 +8,6 @@ uniform mat4 model;
 out vec2 texCoords;
 
 void main() {
-    //gl_Position = projection * model* vec4(vertex.xy, 0.0, 1.0 );
     gl_Position = projection * vec4(vertex.xy, 0.0, 1.0 );
     texCoords = vertex.zw;
 }
@@ -16,18 +15,11 @@ void main() {
 #shader fragment
 #version 330 core
 
-uniform vec3 textColor;
-uniform float time;
-uniform vec2 size;
+uniform vec3 quadColor;
 uniform sampler2D fontTexture;
-//uniform vec2 position;
 
-in vec2 texCoords;
 out vec4 color;
 
 void main() {
-    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(fontTexture, texCoords).r);
-    color = vec4(textColor, 1.0) * sampled;
-
-    //color = vec4(textColor, 1.0);
+    color = vec4(quadColor.r, quadColor.g, quadColor.b, 1.0);
 }

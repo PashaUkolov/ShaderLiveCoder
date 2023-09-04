@@ -23,25 +23,46 @@ struct Character {
     int texCoord;
 };
 
-class TextRenderer {
-public:
-    TextRenderer(int screenWidth, int screenHeight);
-    ~TextRenderer();
-    void loadFont(const std::string& path, unsigned int size);
-
-    void drawText(std::string text, float delta, glm::vec2 position, glm::vec3 color);
-
-    void drawCarret(glm::vec2 position, glm::vec3 color, float time);
-    void reloadShader();
-    std::unordered_map<char, Character> characters;
-private:
-    float width, height;
-    Shader glyphShader;
-    Shader carretShader;
-    unsigned int VBO, VAO, EBO;
-    float time = 0;
-    unsigned int texture;
-    int textureWidth = 0;
-    int textureHeight = 0;
+struct Texture {
+    unsigned int id;
+    float width = 0;
+	float height = 0;
 };
+
+struct TextureAtlasPart {
+	float x, y, width, height;
+};
+
+namespace Renderer {
+	class TextRenderer {
+	public:
+		TextRenderer(GLFWwindow* window, int screenWidth, int screenHeight);
+		~TextRenderer();
+		void loadFont(const std::string& path, unsigned int size);
+		Texture getFontTexture() { return m_fontAtlas; };
+
+		void init();
+
+		void beginFrame();
+		void endFrame();
+
+		void writeVertexToBuffer(float vx, float vy, float vz);
+
+		void drawQuad(glm::vec2 position, float width, float height, glm::vec3 color);
+		void drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color);
+		void drawText(std::string text, glm::vec2 position, glm::vec3 color);
+
+		void drawCarret(glm::vec2 position, glm::vec3 color, float time);
+		void reloadShader();
+		std::unordered_map<char, Character> characters;
+	private:
+		float m_width, m_height;
+		GLFWwindow* m_window = nullptr;
+		Shader m_glyphShader;
+		Shader m_carretShader;
+		Shader m_quadShader;
+		unsigned int m_VBO, m_VAO, m_EBO;
+		Texture m_fontAtlas;
+	};
+}
     

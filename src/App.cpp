@@ -19,13 +19,13 @@ App::App() {
 App::~App() {
 }
 
-void App::init() {
+void App::init(int width, int height) {
     if (!glfwInit()) {
         printf("glfw init failed! \n");
         return;
     }
 
-    m_window = glfwCreateWindow(640, 640, "Nexus Engine", NULL, NULL);
+    m_window = glfwCreateWindow(width, height, "Nexus Engine", NULL, NULL);
     if (!m_window) {
         glfwTerminate();
         printf("window init failed! \n");

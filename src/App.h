@@ -9,7 +9,7 @@ public:
 	App();
 	~App();
 
-	void init();
+	void init(int width, int height);
 	GLFWwindow* getWindow() { return m_window; };
 
 	std::function<void(GLFWwindow*, int, int, int, int)> m_keyCallback;
