@@ -209,45 +209,42 @@ void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width,
 void TextRenderer::drawText(std::string text, glm::vec2 position, glm::vec3 color) {
 	size_t index = 0;
 	uint32_t indexCount = 0;
+	glm::vec2 charPos = position;
 
 	for (auto c = text.begin(); c != text.end(); c++) {
 		Character ch = characters[*c];
-		// int rand =  min + (std::rand() % static_cast<int>(max - min + 1));
-		// Character ch = characters[int(time + rand) % 128];
 		float w = ch.size.x;
 		float h = ch.size.y;
 
-		if (position.x + w >= m_width) {
-			position.x = 10.0f;
-			position.y += m_fontAtlas.height;
-		}
-
-		float xpos = position.x + ch.bearing.x;
-		float ypos = position.y + (this->characters['H'].bearing.y - ch.bearing.y);
+		float xpos = charPos.x + ch.bearing.x;
+		float ypos = charPos.y + (this->characters['H'].bearing.y - ch.bearing.y);
 
 		float texturePos = float(ch.texCoord) / float(m_fontAtlas.width);
 		float texw = (float(ch.texCoord + w) / float(m_fontAtlas.width)) - texturePos;
 		float texh = float(ch.size.y) / float(m_fontAtlas.height);
 
-		TextureAtlasPart part;
-		part.x      = texturePos;
-		part.y      = 0.0f;
-		part.width  = texw;
-		part.height = texh;
+		TextureAtlasPart part = { texturePos, 0.0,texw, texh };
 
-		drawQuadTexture(m_fontAtlas, { xpos, ypos }, w, h, part, color);
+		if (*c != '\n') {
+			drawQuadTexture(m_fontAtlas, { xpos, ypos }, w, h, part, color);
+		}
 
-		position.x += ch.advance >> 6;
+		charPos.x += ch.advance >> 6;
+
+		if (charPos.x + w >= m_width) {
+			charPos.x = position.x;
+			charPos.y += m_fontAtlas.height;
+		}
 
 		if (*c == '\n') {
-			position.x = 10.0f;
-			position.y += m_fontAtlas.height;
+			charPos.x = position.x;
+			charPos.y += m_fontAtlas.height;
 		}
 
 		indexCount += 6;
 		index++;
 	}
-	drawCarret(position, color, 0.0f);
+	drawCarret(charPos, color, 0.0f);
 }
 
 void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {

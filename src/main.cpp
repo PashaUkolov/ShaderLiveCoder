@@ -10,7 +10,7 @@
 
 #include "App.h"
 
-static const int WIDTH = 1920;
+static const int WIDTH = 680;
 static const int HEIGHT = 500;
 
 using namespace Renderer;

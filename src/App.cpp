@@ -50,11 +50,11 @@ void characterCallback(GLFWwindow* window, unsigned int keyCode) {
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS || action == GLFW_REPEAT) {
+	if (key == GLFW_KEY_BACKSPACE && action != GLFW_RELEASE) {
 		m_text = m_text.substr(0, m_text.size() - 1);
 	}
 
 	if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
-		m_text += '\n';
+        m_text += '\n';
 	}
 }
