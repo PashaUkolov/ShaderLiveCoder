@@ -69,9 +69,9 @@ void App::run() {
 
 		glm::vec2 position = glm::vec2(20.0f, 20.0f);
 		auto color = glm::vec3(0.5f, 0.5f, 0.9f);
+		textRenderer->drawScreenQuad({0.0f, 0.0f}, m_width, m_height, color);
 		textRenderer->drawText(m_text, position, color);
 		auto texture = textRenderer->getFontTexture();
-		//textRenderer->drawQuadTexture(textRenderer->getFontTexture(), { 0.0f, 0.0f }, texture.width, texture.height, { 0.0f, 0.0f, 1.0f, 1.0f }, color);
 		textRenderer->setCarretIndex(carretIndex);
 
 		textRenderer->endFrame();

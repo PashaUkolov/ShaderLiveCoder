@@ -123,9 +123,16 @@ void TextRenderer::init() {
 
 	m_glyphShader = m_glyphShader.parseShader("../assets/shaders/glyph.glsl");
 	m_quadShader = m_quadShader.parseShader("../assets/shaders/quad.glsl");
+	m_screenQuadShader = m_screenQuadShader.parseShader("../assets/shaders/screenQuad.glsl");
 
 	glUseProgram(m_glyphShader.ID);
 	glUseProgram(m_quadShader.ID);
+	glUseProgram(m_screenQuadShader.ID);
+
+	GLint location = glGetUniformLocation(m_screenQuadShader.ID, "iResolution");
+	if (location != -1) {
+		glProgramUniform2f(m_screenQuadShader.ID, location, m_width, m_height);
+	}
 }
 
 void TextRenderer::beginFrame() {
@@ -169,6 +176,49 @@ void TextRenderer::drawQuad(glm::vec2 position, float width, float height, glm::
 	glEnableVertexAttribArray(0);
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glUseProgram(0);
+}
+
+void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height, glm::vec3 color) {
+	float w = width;
+	float h = height;
+	float xpos = position.x;
+	float ypos = position.y;
+	float vertices[] = {
+		xpos,  ypos + h,     0.0f, 1.0f,  // top right
+		xpos, ypos,          0.0f, 0.0f,  // bottom right
+		w + xpos, ypos,      1.0f, 0.0f,  // bottom left
+		w + xpos,  ypos + h, 1.0f, 1.0f   // top left 
+	};
+
+	unsigned int indices[] = {
+		0, 1, 3,   // first triangle
+		1, 2, 3    // second triangle
+	};
+
+	glUseProgram(m_screenQuadShader.ID);
+	glBindVertexArray(m_VAO);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glm::mat4 projection = glm::ortho(0.0f, (float)m_width, (float)m_height, 0.0f);
+	glUniform3f(glGetUniformLocation(m_screenQuadShader.ID, "quadColor"), color.x, color.y, color.z);
+	glUniformMatrix4fv(glGetUniformLocation(m_screenQuadShader.ID, "projection"), 1, false, glm::value_ptr(projection));
+
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	/*const GLint texcoord = glGetAttribLocation(m_screenQuadShader.ID, "inTexCoords");
+	if (texcoord >= 0) {
+		glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(3 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(texcoord);
+	}*/
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glUseProgram(0);
 }
 
 void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color) {
@@ -202,6 +252,8 @@ void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width,
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glUseProgram(0);
 }
 
 void TextRenderer::drawText(std::string text, glm::vec2 position, glm::vec3 color) {

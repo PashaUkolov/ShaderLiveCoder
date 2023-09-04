@@ -47,6 +47,7 @@ namespace Renderer {
 		void endFrame();
 
 		void drawQuad(glm::vec2 position, float width, float height, glm::vec3 color);
+		void drawScreenQuad(glm::vec2 position, float width, float height, glm::vec3 color);
 		void drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color);
 		void drawText(std::string text, glm::vec2 position, glm::vec3 color);
 
@@ -59,6 +60,7 @@ namespace Renderer {
 		GLFWwindow* m_window = nullptr;
 		Shader m_glyphShader;
 		Shader m_quadShader;
+		Shader m_screenQuadShader;
 		unsigned int m_VBO, m_VAO, m_EBO;
 		Texture m_fontAtlas;
 		glm::vec2 carretPosition = {};
