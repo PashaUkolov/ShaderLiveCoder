@@ -46,8 +46,6 @@ namespace Renderer {
 		void beginFrame();
 		void endFrame();
 
-		void writeVertexToBuffer(float vx, float vy, float vz);
-
 		void drawQuad(glm::vec2 position, float width, float height, glm::vec3 color);
 		void drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color);
 		void drawText(std::string text, glm::vec2 position, glm::vec3 color);
@@ -59,7 +57,6 @@ namespace Renderer {
 		float m_width, m_height;
 		GLFWwindow* m_window = nullptr;
 		Shader m_glyphShader;
-		Shader m_carretShader;
 		Shader m_quadShader;
 		unsigned int m_VBO, m_VAO, m_EBO;
 		Texture m_fontAtlas;

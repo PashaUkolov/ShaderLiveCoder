@@ -122,11 +122,9 @@ void TextRenderer::init() {
 	glBindVertexArray(0);
 
 	m_glyphShader = m_glyphShader.parseShader("../assets/shaders/glyph.glsl");
-	m_carretShader = m_carretShader.parseShader("../assets/shaders/carret.glsl");
 	m_quadShader = m_quadShader.parseShader("../assets/shaders/quad.glsl");
 
 	glUseProgram(m_glyphShader.ID);
-	glUseProgram(m_carretShader.ID);
 	glUseProgram(m_quadShader.ID);
 }
 
