@@ -9,4 +9,6 @@ Simple text editor for shaders livecoding
 - [ ] glsl synthax highlighting
 - [ ] text selecting
 - [ ] animated carret
+- [ ] line number
+- [ ] code line background
 - [ ] basic batching, single buffer for all glyphs quads to reduce drawcalls
