@@ -133,10 +133,11 @@ void TextRenderer::init(GLFWwindow* window, int screenWidth, int screenHeight) {
 	glUseProgram(m_quadShader.ID);
 	glUseProgram(m_screenQuadShader.ID);
 
-	GLint location = glGetUniformLocation(m_screenQuadShader.ID, "iResolution");
+	glUniform2f(glGetUniformLocation(m_screenQuadShader.ID, "iResolution"), m_width, m_height);
+	/*GLint location = glGetUniformLocation(m_screenQuadShader.ID, "iResolution");
 	if (location != -1) {
 		glProgramUniform2f(m_screenQuadShader.ID, location, m_width, m_height);
-	}
+	}*/
 }
 
 void TextRenderer::beginFrame() {
@@ -184,21 +185,29 @@ void TextRenderer::drawQuad(glm::vec2 position, float width, float height, glm::
 	glUseProgram(0);
 }
 
-void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height, glm::vec3 color) {
+void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height, float time, glm::vec3 color) {
 	float w = width;
 	float h = height;
 	float xpos = position.x;
 	float ypos = position.y;
+
 	float vertices[] = {
-		xpos,  ypos + h,     0.0f, 1.0f,  // top right
-		xpos, ypos,          0.0f, 0.0f,  // bottom right
-		w + xpos, ypos,      1.0f, 0.0f,  // bottom left
-		w + xpos,  ypos + h, 1.0f, 1.0f   // top left 
+		xpos, ypos,          0.0f,  height,
+		xpos,  ypos + h,     0.0f,  0.0f,
+		w + xpos,  ypos + h, width, 0.0f,
+		w + xpos, ypos,      width, height
 	};
 
+	//float vertices[] = {
+	//	xpos,  ypos + h,     0.0f, height,  // top right
+	//	xpos, ypos,          0.0f, 0.0f,  // bottom right
+	//	w + xpos, ypos,      width, 0.0f,  // bottom left
+	//	w + xpos,  ypos + h, width, height   // top left 
+	//};
+
 	unsigned int indices[] = {
-		0, 1, 3,   // first triangle
-		1, 2, 3    // second triangle
+		1, 0, 3,   // first triangle
+		3, 2, 1    // second triangle
 	};
 
 	glUseProgram(m_screenQuadShader.ID);
@@ -209,6 +218,8 @@ void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height,
 
 	glm::mat4 projection = glm::ortho(0.0f, (float)m_width, (float)m_height, 0.0f);
 	glUniform3f(glGetUniformLocation(m_screenQuadShader.ID, "quadColor"), color.x, color.y, color.z);
+	glUniform2f(glGetUniformLocation(m_screenQuadShader.ID, "iResolution"), m_width, m_height);
+	glUniform1f(glGetUniformLocation(m_screenQuadShader.ID, "iTime"), time);
 	glUniformMatrix4fv(glGetUniformLocation(m_screenQuadShader.ID, "projection"), 1, false, glm::value_ptr(projection));
 
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -317,17 +328,14 @@ void TextRenderer::drawText(glm::vec2 position, glm::vec3 color) {
 
 	int lines = getVisibleLinesCount();
 	if (carretPosition.y >= m_height) {
-		scrollAmmount = (lines - 2 - m_lineNumber) * m_fontAtlas.height;
-		//printf("line number %d\n", m_lineNumber);
+		scrollAmmount = (lines - 1 - m_lineNumber) * m_fontAtlas.height;
 	}
 
 	if (carretPosition.y <= 0.0f) {
 		scrollAmmount = m_lineNumber * -m_fontAtlas.height;
-		//scrollAmmount = (lines - 2 - m_lineNumber) * m_fontAtlas.height;
-		//printf("line number %d\n", m_lineNumber);
 	}
 	
-	drawCarret(carretPosition, color, 0.0f);
+	drawCarret(carretPosition, color);
 }
 
 void Renderer::TextRenderer::setText(const std::string& text) {
@@ -360,7 +368,7 @@ void Renderer::TextRenderer::setLineNumber(int lineNumber) {
 	m_lineNumber = lineNumber;
 }
 
-void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
+void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color) {
 	char c = 'h';
 	Character ch = characters[c];
 
@@ -369,7 +377,6 @@ void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
 	float w = ch.size.x;
 	float h = ch.size.y;
 
-	float num = (sin(time) * 0.5f + 0.5f);
 	float texturePos = float(ch.texCoord) / float(m_fontAtlas.width);
 	float texw = (float(ch.texCoord + w) / float(m_fontAtlas.width)) - texturePos;
 	float texh = float(ch.size.y) / float(m_fontAtlas.height);
@@ -378,8 +385,9 @@ void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
 }
 
 void TextRenderer::reloadShader() {
-	m_glyphShader = m_glyphShader.reloadShader("../assets/shaders/glyph.glsl");
-	glUseProgram(m_glyphShader.ID);
+	glUseProgram(0);
+	m_screenQuadShader = m_screenQuadShader.reloadShader("../assets/shaders/screenQuad.glsl");
+	glUseProgram(m_screenQuadShader.ID);
 	std::cout << "shader reloaded" << std::endl;
 }
 
@@ -450,6 +458,16 @@ void Renderer::TextRenderer::keyInput(GLFWwindow* window, int key, int scancode,
 				m_lineNumber += 1;
 				m_carretIndex = m_newLineIndices[m_lineNumber];
 			}
+		}
+	}
+
+	if ((mods & GLFW_MOD_CONTROL)) {
+		if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+			std::ofstream out("../assets/shaders/screenQuad.glsl");
+			out << m_text;
+			out.close();
+			printf("file saved!\n");
+			reloadShader();
 		}
 	}
 }

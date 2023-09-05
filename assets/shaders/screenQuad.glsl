@@ -19,14 +19,13 @@ in vec2 texCoords;
 
 uniform vec3 quadColor;
 uniform sampler2D fontTexture;
-
 uniform vec2 iResolution;
+uniform float iTime;
 
 out vec4 color;
 
 void main() {
-    vec2 uv = texCoords;
-	uv -= 0.5;
-	uv /= vec2(iResolution.x / iResolution.y, 1);
-    color = vec4(uv.x, uv.y, 0.0, 1.0);
+    vec2 uv=(texCoords-0.5*iResolution.xy)/iResolution.y;
+    float circle = step(sin(iTime)*0.5+0.5,length(uv));
+    color = vec4(vec3(circle), 1.0);
 }

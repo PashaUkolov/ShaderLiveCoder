@@ -67,6 +67,7 @@ void App::run() {
 
 		glm::vec2 position = glm::vec2(20.0f, 20.0f);
 		auto color = glm::vec3(0.5f, 0.5f, 0.9f);
+		textRenderer->drawScreenQuad({ 0.0f, 0.0f }, m_width, m_height, time, color);
 		textRenderer->drawText(position, color);
 
 		textRenderer->endFrame();

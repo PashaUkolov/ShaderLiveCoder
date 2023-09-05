@@ -51,7 +51,7 @@ namespace Renderer {
 		void endFrame();
 
 		void drawQuad(glm::vec2 position, float width, float height, glm::vec3 color);
-		void drawScreenQuad(glm::vec2 position, float width, float height, glm::vec3 color);
+		void drawScreenQuad(glm::vec2 position, float width, float height, float time, glm::vec3 color);
 		void drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color);
 		void drawText(glm::vec2 position, glm::vec3 color);
 
@@ -64,7 +64,7 @@ namespace Renderer {
 		glm::vec2 getCarrentPositionFromIndex(int index);
 		void setCarretIndex(int index);
 		void setLineNumber(int lineNumber);
-		void drawCarret(glm::vec2 position, glm::vec3 color, float time);
+		void drawCarret(glm::vec2 position, glm::vec3 color);
 		void reloadShader();
 		std::unordered_map<char, Character> characters;
 

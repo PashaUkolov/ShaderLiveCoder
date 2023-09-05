@@ -36,15 +36,6 @@ std::string Shader::getShaderText(std::string filePath) {
 	std::string line;
 	bool isVertex = false;
 	while (getline(file, line)) {
-		if (line.find("#shader vertex") != std::string::npos) {
-			isVertex = true;
-			continue;
-		}
-		else if (line.find("#shader fragment") != std::string::npos) {
-			isVertex = false;
-			continue;
-		}
-
 		shader << line << "\n";
 	}
 
