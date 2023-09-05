@@ -9,12 +9,6 @@
 
 using namespace Renderer;
 
-std::string m_text;
-int carretIndex = 0;
-
-void characterCallback(GLFWwindow* window, unsigned int keyCode);
-void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
 App::App() {
 }
 
@@ -44,9 +38,6 @@ void App::init(int width, int height) {
         printf("glew init failed! \n");
         return;
     }
-
-    glfwSetCharCallback(m_window, characterCallback);
-    glfwSetKeyCallback(m_window, keyCallback);
 }
 
 void App::run() {
@@ -59,6 +50,10 @@ void App::run() {
 	float time = 0.0f;
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
+
+	Shader mainShader;
+	m_text = mainShader.getShaderText("../assets/shaders/screenQuad.glsl");
+
 	while (!glfwWindowShouldClose(m_window)) {
 		textRenderer->beginFrame();
 
@@ -69,61 +64,12 @@ void App::run() {
 
 		glm::vec2 position = glm::vec2(20.0f, 20.0f);
 		auto color = glm::vec3(0.5f, 0.5f, 0.9f);
-		textRenderer->drawScreenQuad({0.0f, 0.0f}, m_width, m_height, color);
+		//textRenderer->drawScreenQuad({0.0f, 0.0f}, m_width, m_height, color);
 		textRenderer->drawText(m_text, position, color);
-		auto texture = textRenderer->getFontTexture();
-		textRenderer->setCarretIndex(carretIndex);
+		/*textRenderer->setCarretIndex(carretIndex);
+		textRenderer->setLineNumber(carretIndex);*/
 
 		textRenderer->endFrame();
 	}
 	delete textRenderer;
-}
-
-void characterCallback(GLFWwindow* window, unsigned int keyCode) {
-	if (carretIndex != m_text.size()) {
-		m_text.insert(m_text.begin() + carretIndex, keyCode);
-		carretIndex += 1;
-	}
-	else {
-		m_text += keyCode;
-		carretIndex += 1;
-	}
-}
-
-void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_BACKSPACE && action != GLFW_RELEASE) {
-		if (!m_text.empty() && carretIndex != 0) {
-			m_text.erase(m_text.begin() + (carretIndex - 1));
-			carretIndex -= 1;
-		}
-	}
-
-	if (key == GLFW_KEY_DELETE && action != GLFW_RELEASE) {
-		if (!m_text.empty() && carretIndex != 0) {
-			m_text.erase(m_text.begin() + carretIndex);
-		}
-	}
-
-	if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
-		if (carretIndex != m_text.size()) {
-			m_text.insert(m_text.begin() + carretIndex, '\n');
-			carretIndex += 1;
-		}
-		else {
-			m_text += '\n';
-			carretIndex += 1;
-		}
-	}
-
-    if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
-		if (carretIndex > 0) {
-			carretIndex -= 1;
-		}
-    }
-
-	if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
-		if (carretIndex < m_text.size()) {
-			carretIndex += 1;
-		}
-	}
 }

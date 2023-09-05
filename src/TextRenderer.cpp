@@ -4,7 +4,15 @@ using namespace Renderer;
 TextRenderer::TextRenderer(GLFWwindow* window, int screenWidth, int screenHeight) :
 	m_window(window),
 	m_width(screenWidth),
-	m_height(screenHeight) {
+	m_height(screenHeight),
+	m_inputHandler(window)
+{
+	for (int i = 0; i < m_text.size(); i++) {
+		if (m_text[i] == '\n') {
+			newLineIndices.push_back(i);
+		}
+	}
+	m_inputHandler.init();
 }
 
 TextRenderer::~TextRenderer() {
@@ -210,12 +218,6 @@ void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height,
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	/*const GLint texcoord = glGetAttribLocation(m_screenQuadShader.ID, "inTexCoords");
-	if (texcoord >= 0) {
-		glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(texcoord);
-	}*/
-
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	glUseProgram(0);
@@ -256,8 +258,8 @@ void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width,
 	glUseProgram(0);
 }
 
-void TextRenderer::drawText(std::string text, glm::vec2 position, glm::vec3 color) {
-	glm::vec2 charPos = position;
+void TextRenderer::drawText(const std::string& text, glm::vec2 position, glm::vec3 color) {
+	glm::vec2 charPos = position - scrollAmmount;
 	for (auto c = text.begin(); c != text.end(); c++) {
 		Character ch = characters[*c];
 		float w = ch.size.x;
@@ -295,6 +297,18 @@ void TextRenderer::drawText(std::string text, glm::vec2 position, glm::vec3 colo
 		if (index >= m_carretIndex) {
 			break;
 		}
+
+		int lines = getVisibleLinesCount();
+
+		if (carretPosition.y + m_fontAtlas.height >= m_height) {
+			scrollAmmount += m_fontAtlas.height;
+			carretPosition.y -= (m_fontAtlas.height * 2);
+			int a = 0;
+			//carretPosition.y = carretPosition.y;
+			break;
+			//scrollAmmount = m_fontAtlas.height;
+		}
+
 		Character ch = characters[*c];
 		float w = ch.size.x;
 		float h = ch.size.y;
@@ -312,11 +326,28 @@ void TextRenderer::drawText(std::string text, glm::vec2 position, glm::vec3 colo
 		}
 		index++;
 	}
+
 	drawCarret(carretPosition, color, 0.0f);
+}
+
+void Renderer::TextRenderer::setText(const std::string& text) {
+	m_text = text;
+}
+
+int Renderer::TextRenderer::getVisibleLinesCount() {
+	return m_height / m_fontAtlas.height;
+}
+
+glm::vec2 Renderer::TextRenderer::getCarrentPositionFromIndex(int index) {
+	return {};
 }
 
 void Renderer::TextRenderer::setCarretIndex(int index) {
 	m_carretIndex = index;
+}
+
+void Renderer::TextRenderer::setLineNumber(int lineNumber) {
+	m_lineNumber = lineNumber;
 }
 
 void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
