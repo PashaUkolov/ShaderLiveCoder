@@ -1,30 +1,54 @@
 #include "Shader.h"
 
 Shader Shader::parseShader(std::string filePath) {
-    std::stringstream vertex, fragment;
-    
-    std::ifstream file { filePath };
-    std::string line;
-    bool isVertex = false;
-    while(getline(file, line)) {
-	if (line.find("#shader vertex") != std::string::npos) {
-	    isVertex = true;
-	    continue;
-	} else if (line.find("#shader fragment") != std::string::npos) {
-	    isVertex = false;
-	    continue;
+	std::stringstream vertex, fragment;
+
+	std::ifstream file { filePath };
+	std::string line;
+	bool isVertex = false;
+	while (getline(file, line)) {
+		if (line.find("#shader vertex") != std::string::npos) {
+			isVertex = true;
+			continue;
+		}
+		else if (line.find("#shader fragment") != std::string::npos) {
+			isVertex = false;
+			continue;
+		}
+
+		if (isVertex) {
+			vertex << line << "\n";
+		}
+		else {
+			fragment << line << "\n";
+		}
 	}
 
-	if (isVertex) {
-	    vertex << line << "\n";
-	} else {
-	    fragment << line << "\n";
+	Shader shader;
+	shader.compileShader(vertex.str().c_str(), fragment.str().c_str());
+	return shader;
+}
+
+std::string Shader::getShaderText(std::string filePath) {
+	std::stringstream shader;
+
+	std::ifstream file { filePath };
+	std::string line;
+	bool isVertex = false;
+	while (getline(file, line)) {
+		if (line.find("#shader vertex") != std::string::npos) {
+			isVertex = true;
+			continue;
+		}
+		else if (line.find("#shader fragment") != std::string::npos) {
+			isVertex = false;
+			continue;
+		}
+
+		shader << line << "\n";
 	}
-    }
-    
-    Shader shader;
-    shader.compileShader(vertex.str().c_str(), fragment.str().c_str());
-    return shader;
+
+	return shader.str();
 }
 
 void Shader::compileShader(const char* vertexSource, const char* fragmentSource) {    
@@ -51,24 +75,25 @@ void Shader::compileShader(const char* vertexSource, const char* fragmentSource)
 }
 
 void Shader::checkErrors(unsigned int object, std::string type) {
-    int success;
-    char infoLog[2048];
+	int success;
+	char infoLog[2048];
 
-    if (type != "PROGRAM") {
-	glGetProgramiv(object, GL_COMPILE_STATUS, &success);
-	if(!success) {
-	    glGetShaderInfoLog(object, 2048, NULL, infoLog);
-	    std::cout << "ERROR::SHADER::compile time error Type:\n" << type
-		      << "\n" << infoLog << std::endl;
+	if (type != "PROGRAM") {
+		glGetProgramiv(object, GL_COMPILE_STATUS, &success);
+		if (!success) {
+			glGetShaderInfoLog(object, 2048, NULL, infoLog);
+			std::cout << "ERROR::SHADER::compile time error Type:\n" << type
+				<< "\n" << infoLog << std::endl;
+		}
 	}
-    } else {
-	glGetProgramiv(object, GL_LINK_STATUS, &success);
-	if(!success) {
-	    glGetShaderInfoLog(ID, 2048, NULL, infoLog);
-	    std::cout << "ERROR::SHADER::link error Type:\n" << type
-		      << "\n" << infoLog << std::endl;
-	} 
-    }    
+	else {
+		glGetProgramiv(object, GL_LINK_STATUS, &success);
+		if (!success) {
+			glGetShaderInfoLog(ID, 2048, NULL, infoLog);
+			std::cout << "ERROR::SHADER::link error Type:\n" << type
+				<< "\n" << infoLog << std::endl;
+		}
+	}
 }
 
 Shader Shader::reloadShader(std::string filePath) {

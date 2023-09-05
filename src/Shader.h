@@ -15,5 +15,8 @@ public:
     Shader reloadShader(std::string filePath);
     void checkErrors(unsigned int object, std::string type);
 
+    std::string getShaderText(std::string filePath);
+
     GLuint ID;
+    std::string mainShaderText;
 };
