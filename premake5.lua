@@ -55,6 +55,7 @@ project "shaderLiveCoder"
 
 	vpaths 
 	{
+		["src"] = {"src/"},
 	}
 	files {"src/**.c", "src/**.cpp", "src/**.h"}
 
