@@ -9,6 +9,8 @@
 
 using namespace Renderer;
 
+std::string m_text;
+
 App::App() {
 }
 
@@ -41,11 +43,11 @@ void App::init(int width, int height) {
 }
 
 void App::run() {
-	TextRenderer* textRenderer = new TextRenderer(m_window, m_width, m_height);
-	textRenderer->init();
+	TextRenderer* textRenderer = new TextRenderer();
+	textRenderer->init(m_window, m_width, m_height);
 	textRenderer->loadFont("../assets/fonts/BigBlue_TerminalPlus.ttf", 24);
 
-	auto texture = textRenderer->getFontTexture();
+	glfwSetWindowUserPointer(m_window, textRenderer);
 
 	float time = 0.0f;
 	float deltaTime = 0.0f;
@@ -53,6 +55,7 @@ void App::run() {
 
 	Shader mainShader;
 	m_text = mainShader.getShaderText("../assets/shaders/screenQuad.glsl");
+	textRenderer->setText(m_text);
 
 	while (!glfwWindowShouldClose(m_window)) {
 		textRenderer->beginFrame();
@@ -64,10 +67,7 @@ void App::run() {
 
 		glm::vec2 position = glm::vec2(20.0f, 20.0f);
 		auto color = glm::vec3(0.5f, 0.5f, 0.9f);
-		//textRenderer->drawScreenQuad({0.0f, 0.0f}, m_width, m_height, color);
-		textRenderer->drawText(m_text, position, color);
-		/*textRenderer->setCarretIndex(carretIndex);
-		textRenderer->setLineNumber(carretIndex);*/
+		textRenderer->drawText(position, color);
 
 		textRenderer->endFrame();
 	}

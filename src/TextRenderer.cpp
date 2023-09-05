@@ -1,18 +1,7 @@
 #include "TextRenderer.h"
 using namespace Renderer;
 
-TextRenderer::TextRenderer(GLFWwindow* window, int screenWidth, int screenHeight) :
-	m_window(window),
-	m_width(screenWidth),
-	m_height(screenHeight),
-	m_inputHandler(window)
-{
-	for (int i = 0; i < m_text.size(); i++) {
-		if (m_text[i] == '\n') {
-			newLineIndices.push_back(i);
-		}
-	}
-	m_inputHandler.init();
+TextRenderer::TextRenderer()  {
 }
 
 TextRenderer::~TextRenderer() {
@@ -95,7 +84,14 @@ void TextRenderer::loadFont(const std::string& path, unsigned int fontSize) {
 	FT_Done_FreeType(lib);
 }
 
-void TextRenderer::init() {
+void TextRenderer::init(GLFWwindow* window, int screenWidth, int screenHeight) {
+	m_window = window;
+	m_width = screenWidth;
+	m_height = screenHeight;
+
+	glfwSetCharCallback(m_window, characterCallback);
+	glfwSetKeyCallback(m_window, keyCallback);
+
 	float w = 100.0;
 	float h = 100.0;
 	float xpos = 0.0f;
@@ -258,9 +254,10 @@ void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width,
 	glUseProgram(0);
 }
 
-void TextRenderer::drawText(const std::string& text, glm::vec2 position, glm::vec3 color) {
-	glm::vec2 charPos = position - scrollAmmount;
-	for (auto c = text.begin(); c != text.end(); c++) {
+void TextRenderer::drawText(glm::vec2 position, glm::vec3 color) {
+	position.y += scrollAmmount;
+	glm::vec2 charPos = position;
+	for (auto c = m_text.begin(); c != m_text.end(); c++) {
 		Character ch = characters[*c];
 		float w = ch.size.x;
 		float h = ch.size.y;
@@ -293,21 +290,11 @@ void TextRenderer::drawText(const std::string& text, glm::vec2 position, glm::ve
 
 	int index = 0;
 	glm::vec2 carretPosition = position;
-	for (auto c = text.begin(); c != text.end(); c++) {
+	for (auto c = m_text.begin(); c != m_text.end(); c++) {
 		if (index >= m_carretIndex) {
 			break;
 		}
 
-		int lines = getVisibleLinesCount();
-
-		if (carretPosition.y + m_fontAtlas.height >= m_height) {
-			scrollAmmount += m_fontAtlas.height;
-			carretPosition.y -= (m_fontAtlas.height * 2);
-			int a = 0;
-			//carretPosition.y = carretPosition.y;
-			break;
-			//scrollAmmount = m_fontAtlas.height;
-		}
 
 		Character ch = characters[*c];
 		float w = ch.size.x;
@@ -324,18 +311,41 @@ void TextRenderer::drawText(const std::string& text, glm::vec2 position, glm::ve
 			carretPosition.x = position.x;
 			carretPosition.y += m_fontAtlas.height;
 		}
+
 		index++;
 	}
 
+	int lines = getVisibleLinesCount();
+	if (carretPosition.y >= m_height) {
+		scrollAmmount = (lines - 2 - m_lineNumber) * m_fontAtlas.height;
+		//printf("line number %d\n", m_lineNumber);
+	}
+
+	if (carretPosition.y <= 0.0f) {
+		scrollAmmount = m_lineNumber * -m_fontAtlas.height;
+		//scrollAmmount = (lines - 2 - m_lineNumber) * m_fontAtlas.height;
+		//printf("line number %d\n", m_lineNumber);
+	}
+	
 	drawCarret(carretPosition, color, 0.0f);
 }
 
 void Renderer::TextRenderer::setText(const std::string& text) {
 	m_text = text;
+	calculateTextNewLineIndices();
 }
 
 int Renderer::TextRenderer::getVisibleLinesCount() {
 	return m_height / m_fontAtlas.height;
+}
+
+void Renderer::TextRenderer::calculateTextNewLineIndices() {
+	m_newLineIndices.clear();
+	for (int i = 0; i < m_text.size(); i++) {
+		if (m_text[i] == '\n') {
+			m_newLineIndices.push_back(i);
+		}
+	}
 }
 
 glm::vec2 Renderer::TextRenderer::getCarrentPositionFromIndex(int index) {
@@ -351,8 +361,6 @@ void Renderer::TextRenderer::setLineNumber(int lineNumber) {
 }
 
 void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color, float time) {
-	float animation = std::sin(time);
-
 	char c = 'h';
 	Character ch = characters[c];
 
@@ -373,4 +381,85 @@ void TextRenderer::reloadShader() {
 	m_glyphShader = m_glyphShader.reloadShader("../assets/shaders/glyph.glsl");
 	glUseProgram(m_glyphShader.ID);
 	std::cout << "shader reloaded" << std::endl;
+}
+
+void Renderer::TextRenderer::characterInput(GLFWwindow* window, unsigned int keyCode) {
+	if (m_carretIndex != m_text.size()) {
+		m_text.insert(m_text.begin() + m_carretIndex, keyCode);
+		m_carretIndex += 1;
+	}
+	else {
+		m_text += keyCode;
+		m_carretIndex += 1;
+	}
+	calculateTextNewLineIndices();
+}
+
+void Renderer::TextRenderer::keyInput(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_BACKSPACE && action != GLFW_RELEASE) {
+		if (!m_text.empty() && m_carretIndex != 0) {
+			m_text.erase(m_text.begin() + (m_carretIndex - 1));
+			m_carretIndex -= 1;
+		}
+
+		calculateTextNewLineIndices();
+	}
+
+	if (key == GLFW_KEY_DELETE && action != GLFW_RELEASE) {
+		if (!m_text.empty() && m_carretIndex != 0) {
+			m_text.erase(m_text.begin() + m_carretIndex);
+		}
+	}
+
+	if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
+		if (m_carretIndex != m_text.size()) {
+			m_text.insert(m_text.begin() + m_carretIndex, '\n');
+			m_carretIndex += 1;
+		}
+		else {
+			m_text += '\n';
+			m_carretIndex += 1;
+		}
+	}
+
+	if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
+		if (m_carretIndex > 0) {
+			m_carretIndex -= 1;
+		}
+	}
+
+	if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
+		if (m_carretIndex < m_text.size()) {
+			m_carretIndex += 1;
+		}
+	}
+
+	if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
+		m_lineNumber -= 1;
+		if (m_lineNumber < 0) {
+			m_lineNumber = 0;
+		}
+		if (!m_newLineIndices.empty()) {
+			m_carretIndex = m_newLineIndices[m_lineNumber];
+		}
+	}
+
+	if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
+		if (!m_newLineIndices.empty()) {
+			if (m_lineNumber < m_newLineIndices.size() - 1) {
+				m_lineNumber += 1;
+				m_carretIndex = m_newLineIndices[m_lineNumber];
+			}
+		}
+	}
+}
+
+void characterCallback(GLFWwindow* window, unsigned int keyCode) {
+	TextRenderer* ptr = (TextRenderer*)glfwGetWindowUserPointer(window);
+	ptr->characterInput(window, keyCode);
+}
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	TextRenderer* ptr = (TextRenderer*)glfwGetWindowUserPointer(window);
+	ptr->keyInput(window, key, scancode, action, mods);
 }
