@@ -26,6 +26,8 @@ out vec4 color;
 
 void main() {
     vec2 uv=(texCoords-0.5*iResolution.xy)/iResolution.y;
-    float circle = step(sin(iTime)*0.5+0.5,length(uv));
-    color = vec4(vec3(circle), 1.0);
+    float circle = smoothstep(sin(iTime), sin(iTime-0.1), length(uv));
+
+    color = vec4(1.0, circle, 1.0, 1.0);
+
 }

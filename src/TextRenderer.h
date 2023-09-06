@@ -50,10 +50,11 @@ namespace Renderer {
 		void beginFrame();
 		void endFrame();
 
+		void draw();
 		void drawQuad(glm::vec2 position, float width, float height, glm::vec3 color);
-		void drawScreenQuad(glm::vec2 position, float width, float height, float time, glm::vec3 color);
+		void drawScreenQuad(glm::vec2 position, float width, float height, float time);
 		void drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color);
-		void drawText(glm::vec2 position, glm::vec3 color);
+		void drawText(const std::string text, glm::vec2 position, glm::vec3 color);
 
 		void setText(const std::string& text);
 

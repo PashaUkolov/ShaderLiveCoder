@@ -16,7 +16,6 @@ void main() {
 #version 330 core
 
 uniform vec3 quadColor;
-uniform sampler2D fontTexture;
 
 out vec4 color;
 
