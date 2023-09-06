@@ -27,7 +27,7 @@ void App::init(int width, int height) {
         return;
     }
 
-    m_window = glfwCreateWindow(m_width, m_height, "Nexus Engine", NULL, NULL);
+    m_window = glfwCreateWindow(m_width, m_height, "Shader Livecoder", NULL, NULL);
     if (!m_window) {
         glfwTerminate();
         printf("window init failed! \n");
@@ -45,7 +45,7 @@ void App::init(int width, int height) {
 void App::run() {
 	TextRenderer* textRenderer = new TextRenderer();
 	textRenderer->init(m_window, m_width, m_height);
-	textRenderer->loadFont("../assets/fonts/BigBlue_TerminalPlus.ttf", 24);
+	textRenderer->loadFont("../assets/fonts/BigBlue_TerminalPlus.ttf", 20);
 
 	glfwSetWindowUserPointer(m_window, textRenderer);
 
@@ -65,10 +65,8 @@ void App::run() {
 		lastFrame = currentTime;
 		time += deltaTime;
 
-		glm::vec2 position = glm::vec2(20.0f, 20.0f);
-		auto color = glm::vec3(0.5f, 0.5f, 0.9f);
-		textRenderer->drawScreenQuad({ 0.0f, 0.0f }, m_width, m_height, time, color);
-		textRenderer->drawText(position, color);
+		textRenderer->drawScreenQuad({ 0.0f, 0.0f }, m_width, m_height, time);
+		textRenderer->draw();
 
 		textRenderer->endFrame();
 	}

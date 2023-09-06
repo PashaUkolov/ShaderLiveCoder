@@ -150,6 +150,12 @@ void TextRenderer::endFrame() {
 	glfwPollEvents();
 }
 
+void Renderer::TextRenderer::draw() {
+	glm::vec2 position = glm::vec2(20.0f, 20.0f);
+	auto color = glm::vec3(0.2f, 0.2f, 0.3f);
+	drawText(m_text, position, color);
+}
+
 void TextRenderer::drawQuad(glm::vec2 position, float width, float height, glm::vec3 color) {
 	float w = width;
 	float h = height;
@@ -185,7 +191,7 @@ void TextRenderer::drawQuad(glm::vec2 position, float width, float height, glm::
 	glUseProgram(0);
 }
 
-void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height, float time, glm::vec3 color) {
+void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height, float time) {
 	float w = width;
 	float h = height;
 	float xpos = position.x;
@@ -217,7 +223,6 @@ void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height,
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	glm::mat4 projection = glm::ortho(0.0f, (float)m_width, (float)m_height, 0.0f);
-	glUniform3f(glGetUniformLocation(m_screenQuadShader.ID, "quadColor"), color.x, color.y, color.z);
 	glUniform2f(glGetUniformLocation(m_screenQuadShader.ID, "iResolution"), m_width, m_height);
 	glUniform1f(glGetUniformLocation(m_screenQuadShader.ID, "iTime"), time);
 	glUniformMatrix4fv(glGetUniformLocation(m_screenQuadShader.ID, "projection"), 1, false, glm::value_ptr(projection));
@@ -265,10 +270,10 @@ void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width,
 	glUseProgram(0);
 }
 
-void TextRenderer::drawText(glm::vec2 position, glm::vec3 color) {
+void TextRenderer::drawText(const std::string text, glm::vec2 position, glm::vec3 color) {
 	position.y += scrollAmmount;
 	glm::vec2 charPos = position;
-	for (auto c = m_text.begin(); c != m_text.end(); c++) {
+	for (auto c = text.begin(); c != text.end(); c++) {
 		Character ch = characters[*c];
 		float w = ch.size.x;
 		float h = ch.size.y;
@@ -301,11 +306,10 @@ void TextRenderer::drawText(glm::vec2 position, glm::vec3 color) {
 
 	int index = 0;
 	glm::vec2 carretPosition = position;
-	for (auto c = m_text.begin(); c != m_text.end(); c++) {
+	for (auto c = text.begin(); c != text.end(); c++) {
 		if (index >= m_carretIndex) {
 			break;
 		}
-
 
 		Character ch = characters[*c];
 		float w = ch.size.x;
@@ -380,8 +384,11 @@ void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color) {
 	float texturePos = float(ch.texCoord) / float(m_fontAtlas.width);
 	float texw = (float(ch.texCoord + w) / float(m_fontAtlas.width)) - texturePos;
 	float texh = float(ch.size.y) / float(m_fontAtlas.height);
+
+	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
 	drawQuad({ xpos , ypos }, w, h, color);
+	glDisable(GL_BLEND);
 }
 
 void TextRenderer::reloadShader() {
