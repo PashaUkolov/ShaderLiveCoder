@@ -12,3 +12,4 @@ Simple text editor for shaders livecoding
 - [ ] line number
 - [ ] code line background
 - [ ] basic batching, single buffer for all glyphs quads to reduce drawcalls
+- [ ] double buffering for accesing previous frame for feedback effects
