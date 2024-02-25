@@ -62,7 +62,7 @@ namespace Renderer {
 
 		void calculateTextNewLineIndices();
 
-		glm::vec2 getCarrentPositionFromIndex(int index);
+		glm::vec2 getTextPositionFromIndex(int index);
 		void setCarretIndex(int index);
 		void setLineNumber(int lineNumber);
 		void drawCarret(glm::vec2 position, glm::vec3 color);
@@ -81,10 +81,13 @@ namespace Renderer {
 		unsigned int m_VBO, m_VAO, m_EBO;
 		Texture m_fontAtlas;
 		glm::vec2 m_carretPosition = {};
-		float scrollAmmount = 0.0;
+		glm::vec2 m_textPosition = {};
+		float scrollAmmount = 0.0f;
 		int m_carretIndex = 0;
 		int m_lineNumber = 0;
-
+		int m_selectionStartIndex = 0;
+		int m_selectionEndIndex = 0;
+		bool m_isSelecting = false;
 		std::string m_text;
 		std::vector<int> m_newLineIndices;
 	};

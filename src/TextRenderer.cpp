@@ -134,10 +134,6 @@ void TextRenderer::init(GLFWwindow* window, int screenWidth, int screenHeight) {
 	glUseProgram(m_screenQuadShader.ID);
 
 	glUniform2f(glGetUniformLocation(m_screenQuadShader.ID, "iResolution"), m_width, m_height);
-	/*GLint location = glGetUniformLocation(m_screenQuadShader.ID, "iResolution");
-	if (location != -1) {
-		glProgramUniform2f(m_screenQuadShader.ID, location, m_width, m_height);
-	}*/
 }
 
 void TextRenderer::beginFrame() {
@@ -151,8 +147,14 @@ void TextRenderer::endFrame() {
 }
 
 void Renderer::TextRenderer::draw() {
+	if (m_isSelecting) {
+		auto selectionStartPosition = getTextPositionFromIndex(m_selectionStartIndex);
+		auto selectionEndPosition = getTextPositionFromIndex(m_selectionEndIndex);
+		drawQuad(selectionStartPosition, selectionEndPosition.x - selectionStartPosition.x, 15.0f, { 1.0f, 1.0f, 1.0f });
+	}
+
 	glm::vec2 position = glm::vec2(20.0f, 20.0f);
-	auto color = glm::vec3(0.2f, 0.2f, 0.3f);
+	auto color = glm::vec3(0.7f, 0.7f, 0.8f);
 	drawText(m_text, position, color);
 }
 
@@ -272,6 +274,7 @@ void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width,
 
 void TextRenderer::drawText(const std::string text, glm::vec2 position, glm::vec3 color) {
 	position.y += scrollAmmount;
+	m_textPosition = position;
 	glm::vec2 charPos = position;
 	for (auto c = text.begin(); c != text.end(); c++) {
 		Character ch = characters[*c];
@@ -288,6 +291,13 @@ void TextRenderer::drawText(const std::string text, glm::vec2 position, glm::vec
 		TextureAtlasPart part = { texturePos, 0.0, texw, texh };
 
 		if (*c != '\n') {
+			glm::vec3 lineBgColor = { 0.2, 0.2, 0.2 };
+			char c = 'h';
+			Character ch = characters[c];
+
+			float cw = ch.size.x;
+			float chh = ch.size.y;
+
 			drawQuadTexture(m_fontAtlas, { xpos, ypos }, w, h, part, color);
 		}
 
@@ -304,35 +314,11 @@ void TextRenderer::drawText(const std::string text, glm::vec2 position, glm::vec
 		}
 	}
 
-	int index = 0;
-	glm::vec2 carretPosition = position;
-	for (auto c = text.begin(); c != text.end(); c++) {
-		if (index >= m_carretIndex) {
-			break;
-		}
-
-		Character ch = characters[*c];
-		float w = ch.size.x;
-		float h = ch.size.y;
-
-		carretPosition.x += ch.advance >> 6;
-
-		if (carretPosition.x + w >= m_width) {
-			carretPosition.x = position.x;
-			carretPosition.y += m_fontAtlas.height;
-		}
-
-		if (*c == '\n') {
-			carretPosition.x = position.x;
-			carretPosition.y += m_fontAtlas.height;
-		}
-
-		index++;
-	}
+	auto carretPosition = getTextPositionFromIndex(m_carretIndex);
 
 	int lines = getVisibleLinesCount();
 	if (carretPosition.y >= m_height) {
-		scrollAmmount = (lines - 1 - m_lineNumber) * m_fontAtlas.height;
+		scrollAmmount = (lines - 2 - m_lineNumber) * m_fontAtlas.height;
 	}
 
 	if (carretPosition.y <= 0.0f) {
@@ -360,8 +346,33 @@ void Renderer::TextRenderer::calculateTextNewLineIndices() {
 	}
 }
 
-glm::vec2 Renderer::TextRenderer::getCarrentPositionFromIndex(int index) {
-	return {};
+glm::vec2 Renderer::TextRenderer::getTextPositionFromIndex(int textIndex) {
+	int index = 0;
+	glm::vec2 carretPosition = m_textPosition;
+	for (auto c = m_text.begin(); c != m_text.end(); c++) {
+		if (index >= textIndex) {
+			break;
+		}
+
+		Character ch = characters[*c];
+		float w = ch.size.x;
+		float h = ch.size.y;
+
+		carretPosition.x += ch.advance >> 6;
+
+		if (carretPosition.x + w >= m_width) {
+			carretPosition.x = m_textPosition.x;
+			carretPosition.y += m_fontAtlas.height;
+		}
+
+		if (*c == '\n') {
+			carretPosition.x = m_textPosition.x;
+			carretPosition.y += m_fontAtlas.height;
+		}
+
+		index++;
+	}
+	return carretPosition;
 }
 
 void Renderer::TextRenderer::setCarretIndex(int index) {
@@ -380,10 +391,6 @@ void TextRenderer::drawCarret(glm::vec2 position, glm::vec3 color) {
 	float ypos = position.y + (this->characters['H'].bearing.y - ch.bearing.y);
 	float w = ch.size.x;
 	float h = ch.size.y;
-
-	float texturePos = float(ch.texCoord) / float(m_fontAtlas.width);
-	float texw = (float(ch.texCoord + w) / float(m_fontAtlas.width)) - texturePos;
-	float texh = float(ch.size.y) / float(m_fontAtlas.height);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
@@ -422,7 +429,7 @@ void Renderer::TextRenderer::keyInput(GLFWwindow* window, int key, int scancode,
 
 	if (key == GLFW_KEY_DELETE && action != GLFW_RELEASE) {
 		if (!m_text.empty() && m_carretIndex != 0) {
-			m_text.erase(m_text.begin() + m_carretIndex);
+			m_text.erase(m_text.begin() + m_selectionStartIndex, m_text.begin() + m_selectionEndIndex);
 		}
 	}
 
@@ -430,22 +437,51 @@ void Renderer::TextRenderer::keyInput(GLFWwindow* window, int key, int scancode,
 		if (m_carretIndex != m_text.size()) {
 			m_text.insert(m_text.begin() + m_carretIndex, '\n');
 			m_carretIndex += 1;
+			m_lineNumber += 1;
 		}
 		else {
 			m_text += '\n';
 			m_carretIndex += 1;
 		}
+		calculateTextNewLineIndices();
 	}
 
 	if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
 		if (m_carretIndex > 0) {
 			m_carretIndex -= 1;
 		}
+		if (!m_isSelecting) {
+			m_selectionStartIndex = m_carretIndex;
+			m_selectionEndIndex = m_carretIndex + 1;
+		}
 	}
 
 	if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
 		if (m_carretIndex < m_text.size()) {
 			m_carretIndex += 1;
+		}
+		if (!m_isSelecting) {
+			m_selectionStartIndex = m_carretIndex;
+			m_selectionEndIndex = m_carretIndex + 1;
+		}
+	}
+
+	if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS) {
+		m_selectionStartIndex = m_carretIndex;
+	}
+
+	if (mods & GLFW_MOD_SHIFT) {
+		m_isSelecting = true;
+	}
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+		m_isSelecting = false;
+		m_selectionEndIndex = m_carretIndex;
+		m_selectionStartIndex = m_carretIndex;
+	}
+
+	if (mods & GLFW_MOD_SHIFT && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
+			m_selectionEndIndex = m_carretIndex;
 		}
 	}
 
