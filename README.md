@@ -1,7 +1,7 @@
 # ShaderLiveCoder
 Simple text editor for shaders livecoding
 
-[logo]: https://github.com/Morphtables/ShaderLiveCoder/blob/main/screen.png "screenshot"
+![alt text]( https://github.com/Morphtables/ShaderLiveCoder/blob/main/screen.png "screenshot")
 
 ## TODO:
 - [x] basic text rendering 
