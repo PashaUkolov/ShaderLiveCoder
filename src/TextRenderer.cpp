@@ -92,36 +92,14 @@ void TextRenderer::init(GLFWwindow* window, int screenWidth, int screenHeight) {
 	glfwSetCharCallback(m_window, characterCallback);
 	glfwSetKeyCallback(m_window, keyCallback);
 
-	float w = 100.0;
-	float h = 100.0;
-	float xpos = 0.0f;
-	float ypos = 0.0f;
-	float vertices[] = {
-		//pos xy            texture xy 
-		xpos,     ypos + h, 0.0f, 0.0f, // top right
-		xpos,     ypos,     0.0f, 0.0f, // bottom right
-		w + xpos, ypos,     0.0f, 0.0f, // bottom left
-		w + xpos, ypos + h, 0.0f, 0.0f // top left 
-	};
-
-	unsigned int indeces[] = {
-		0, 1, 3,   // first triangle
-		1, 2, 3    // second triangle
-	};
-
 	glGenVertexArrays(1, &m_VAO);
 	glBindVertexArray(m_VAO);
 
 	glGenBuffers(1, &m_VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
 	glGenBuffers(1, &m_EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indeces), indeces, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (GLvoid*)0);
+	//glEnableVertexAttribArray(0);
 
 	glBindVertexArray(0);
 
@@ -177,6 +155,7 @@ void TextRenderer::drawQuad(glm::vec2 position, float width, float height, glm::
 
 	glUseProgram(m_quadShader.ID);
 	glBindVertexArray(m_VAO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -206,13 +185,6 @@ void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height,
 		w + xpos, ypos,      width, height
 	};
 
-	//float vertices[] = {
-	//	xpos,  ypos + h,     0.0f, height,  // top right
-	//	xpos, ypos,          0.0f, 0.0f,  // bottom right
-	//	w + xpos, ypos,      width, 0.0f,  // bottom left
-	//	w + xpos,  ypos + h, width, height   // top left 
-	//};
-
 	unsigned int indices[] = {
 		1, 0, 3,   // first triangle
 		3, 2, 1    // second triangle
@@ -220,6 +192,8 @@ void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height,
 
 	glUseProgram(m_screenQuadShader.ID);
 	glBindVertexArray(m_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -238,8 +212,8 @@ void TextRenderer::drawScreenQuad(glm::vec2 position, float width, float height,
 }
 
 void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color) {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glUseProgram(m_glyphShader.ID);
 	glBindTexture(GL_TEXTURE_2D, m_fontAtlas.id);
 	glBindVertexArray(m_VAO);
@@ -272,10 +246,45 @@ void TextRenderer::drawQuadTexture(Texture tex, glm::vec2 position, float width,
 	glUseProgram(0);
 }
 
+void TextRenderer::addTextQuad(int index, Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color) {
+
+	float xpos = position.x;
+	float ypos = position.y;
+
+	m_vertices.push_back(xpos);
+	m_vertices.push_back(ypos + height);
+	m_vertices.push_back(part.x);
+	m_vertices.push_back(part.y + part.height);
+
+	m_vertices.push_back(xpos);
+	m_vertices.push_back(ypos);
+	m_vertices.push_back(part.x);
+	m_vertices.push_back(part.y);
+
+	m_vertices.push_back(width + xpos);
+	m_vertices.push_back(ypos);
+	m_vertices.push_back(part.x + part.width);
+	m_vertices.push_back(part.y);
+
+	m_vertices.push_back(width + xpos);
+	m_vertices.push_back(ypos + height);
+	m_vertices.push_back(part.x + part.width);
+	m_vertices.push_back(part.y + part.height);
+
+	m_quadsIndices.push_back(0 + index*4);
+	m_quadsIndices.push_back(1 + index*4);
+	m_quadsIndices.push_back(3 + index*4);
+	m_quadsIndices.push_back(1 + index*4);
+	m_quadsIndices.push_back(2 + index*4);
+	m_quadsIndices.push_back(3 + index*4);
+	
+}
+
 void TextRenderer::drawText(const std::string text, glm::vec2 position, glm::vec3 color) {
 	position.y += scrollAmmount;
 	m_textPosition = position;
 	glm::vec2 charPos = position;
+	int index = 0;
 	for (auto c = text.begin(); c != text.end(); c++) {
 		Character ch = characters[*c];
 		float w = ch.size.x;
@@ -298,9 +307,10 @@ void TextRenderer::drawText(const std::string text, glm::vec2 position, glm::vec
 			float cw = ch.size.x;
 			float chh = ch.size.y;
 
-			drawQuadTexture(m_fontAtlas, { xpos, ypos }, w, h, part, color);
+			addTextQuad(index, m_fontAtlas, { xpos, ypos }, w, h, part, color);
 		}
 
+		index += 1;
 		charPos.x += ch.advance >> 6;
 
 		if (charPos.x + w >= m_width) {
@@ -325,6 +335,21 @@ void TextRenderer::drawText(const std::string text, glm::vec2 position, glm::vec
 		scrollAmmount = m_lineNumber * -m_fontAtlas.height;
 	}
 	
+	glUseProgram(m_glyphShader.ID);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindTexture(GL_TEXTURE_2D, m_fontAtlas.id);
+	glBindVertexArray(m_VAO);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * m_quadsIndices.size(), m_quadsIndices.data(), GL_STATIC_DRAW);
+
+	glm::mat4 projection = glm::ortho(0.0f, (float)m_width, (float)m_height, 0.0f);
+	glUniform3f(glGetUniformLocation(m_glyphShader.ID, "textColor"), color.x, color.y, color.z);
+	glUniformMatrix4fv(glGetUniformLocation(m_glyphShader.ID, "projection"), 1, false, glm::value_ptr(projection));
+
+	glDrawElements(GL_TRIANGLES, m_quadsIndices.size(), GL_UNSIGNED_INT, 0);
+
 	drawCarret(carretPosition, color);
 }
 

@@ -29,6 +29,13 @@ struct Texture {
 	float height = 0;
 };
 
+struct Rectangle {
+	float x = 0.0f;
+	float y = 0.0f;
+	float width = 0.0f;
+	float height = 0.0f;
+};
+
 struct TextureAtlasPart {
 	float x, y, width, height;
 };
@@ -54,6 +61,7 @@ namespace Renderer {
 		void drawQuad(glm::vec2 position, float width, float height, glm::vec3 color);
 		void drawScreenQuad(glm::vec2 position, float width, float height, float time);
 		void drawQuadTexture(Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color);
+		void addTextQuad(int index, Texture tex, glm::vec2 position, float width, float height, TextureAtlasPart part, glm::vec3 color);
 		void drawText(const std::string text, glm::vec2 position, glm::vec3 color);
 
 		void setText(const std::string& text);
@@ -90,6 +98,9 @@ namespace Renderer {
 		bool m_isSelecting = false;
 		std::string m_text;
 		std::vector<int> m_newLineIndices;
+
+		std::vector<float> m_vertices;
+		std::vector<unsigned int> m_quadsIndices;
 	};
 }
     
